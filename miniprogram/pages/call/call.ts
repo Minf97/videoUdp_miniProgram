@@ -9,8 +9,6 @@ Page({
     },
     timer: 0,
     onLoad() {
-        console.log(app.globalData);
-        
         const { startTime } = this.data;
         this.timer = setInterval(() => {
             this.setData({
