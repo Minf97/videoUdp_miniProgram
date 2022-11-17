@@ -1,0 +1,4 @@
+<view style="height: {{statusBarHeight}}px;"></view>
+<view class="customBar" style="height: {{customBar}}px;">
+    <slot></slot>
+</view>

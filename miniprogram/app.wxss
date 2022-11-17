@@ -1,0 +1,10 @@
+
+page{
+    --color-h1: #333333;
+    --color-h2: #666666;
+    --color-h3: #999999;
+}
+
+.container {
+
+}

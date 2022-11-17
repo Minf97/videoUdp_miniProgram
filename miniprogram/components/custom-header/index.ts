@@ -1,0 +1,16 @@
+
+const app = getApp();
+Component({
+    properties: {
+
+    },
+    data: {
+        // 状态栏高度
+        statusBarHeight: app.globalData.statusBarHeight,
+        // 头部高度
+        customBar: app.globalData.bottom + app.globalData.top - app.globalData.statusBarHeight
+    },
+    methods: {
+
+    }
+})

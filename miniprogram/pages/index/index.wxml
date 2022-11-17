@@ -1,0 +1,31 @@
+<view class="container">
+
+    <view class="box">
+        <image class="bell" src="../../assets/images/index/{{isBellOn ? 'bell_active' : 'bell'}}.png" mode="widthFix"/>
+        <view class="power">电池电量：</view>
+        <view class="row">
+            <view class="boxColumn">
+                <image src="../../assets/images/index/video.png" mode="widthFix"/>
+                <view class="title">呼叫</view>
+            </view>
+            <view class="boxColumn">
+                <image src="../../assets/images/index/setting.png" mode="widthFix"/>
+                <view class="title">设置</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="box">
+        <view class="top">
+            <view class="txt">记录</view>
+            <navigator url="../more/more" class="txt">更多 <image class="arrow" src="../../assets/images/index/down.png" mode="widthFix"/></navigator>
+        </view>
+
+        <view class="divid"></view>
+
+        <view class="content" wx:for="{{content}}">
+            <view class="time">{{item.time}}</view>
+            <view class="text">{{item.text}}</view>
+        </view>
+    </view>
+</view>

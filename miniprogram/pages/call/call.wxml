@@ -1,0 +1,35 @@
+<view class="container">
+    <!-- 自定义头部 -->
+    <custom-header>
+        <view>{{isVideo ? "视频通话" : "语音通话"}}</view>
+    </custom-header>
+
+    <!-- 视频区域 -->
+    <image class="videoArea" src="{{imageSrc}}" mode="aspectFit" />
+
+    <!-- 通话时长 -->
+    <view class="duration">{{callDuration}}</view>
+
+    <!-- 按钮区域 -->
+    <view class="row">
+        <view class="boxColumn">
+            <image class="icon" src="../../assets/images/call/turnAudio.png" mode="widthFix" />
+            <view class="txt">转换至语音</view>
+        </view>
+        <view class="boxColumn">
+            <image class="icon" src="../../assets/images/call/mirco.png" mode="widthFix" />
+            <view class="txt">麦克风开启</view>
+        </view>
+        <view class="boxColumn">
+            <image class="icon" src="../../assets/images/call/slient.png" mode="widthFix" />
+            <view class="txt">扬声器关闭</view>
+        </view>
+    </view>
+    <view class="row">
+        <view class="boxColumn">
+            <image class="icon" src="../../assets/images/call/close.png" mode="widthFix" />
+            <view class="txt">关闭</view>
+        </view>
+    </view>
+    <!-- 按钮区域end -->
+</view>

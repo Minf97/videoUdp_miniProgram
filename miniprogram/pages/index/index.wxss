@@ -1,0 +1,100 @@
+
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    background-color: #f9f9fb;
+    min-height: 100vh;
+}
+
+.box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    margin-top: 20rpx;
+    background-color: #fff;
+    border-radius: 20rpx;
+    padding-bottom: 40rpx;
+}
+
+.bell {
+    width: 300rpx;
+    height: 300rpx;
+    margin: 30rpx 0;
+}
+
+.power {
+    color: #707070;
+    letter-spacing: 1rpx;
+}
+
+.row {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin-top: 30rpx;
+}
+
+.boxColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.boxColumn image {
+    width: 100rpx;
+    height: 100rpx;
+}
+.boxColumn .title {
+    margin-top: 20rpx;
+    color: var(--color-h1);
+}
+/* 信息流 */
+.top {
+    width: 100%;
+    padding: 0 50rpx;
+    line-height: 80rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.txt {
+    color: var(--color-h1);
+}
+.arrow {
+    width: 25rpx;
+    height: 25rpx;
+}
+
+.divid {
+    position: absolute;
+    top: 80rpx;
+    left: 35rpx;
+    right: 35rpx;
+    height: 1rpx;
+    border-bottom: 1rpx solid var(--color-h3);
+    opacity: 0.2;
+}
+
+.content {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    padding: 30rpx 0 0 50rpx;
+    box-sizing: border-box;
+    color: var(--color-h2);
+    font-size: 28rpx;
+}
+
+.text {
+    margin-left: 30rpx;
+}

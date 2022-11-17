@@ -1,0 +1,7 @@
+{
+    "navigationBarTitleText": "视频通话",
+    "navigationStyle": "custom",
+    "usingComponents": {
+        "custom-header": "../../components/custom-header/index"
+    }
+}

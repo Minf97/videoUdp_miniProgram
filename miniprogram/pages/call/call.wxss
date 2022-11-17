@@ -1,0 +1,38 @@
+.container {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.videoArea {
+    width: 100%;
+    height: 50vh;
+    background-color: pink;
+}
+.duration {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 40rpx 0;
+    margin-bottom: 90rpx;
+    color: var(--color-h2)
+}
+.row {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin: 40rpx 0;
+}
+.boxColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.txt {
+    margin-top: 10rpx;
+}
+.icon {
+    width: 90rpx;
+    height: 90rpx;
+}
