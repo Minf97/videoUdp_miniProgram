@@ -6,7 +6,13 @@
 .videoArea {
     width: 100%;
     height: 50vh;
-    background-color: pink;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* background-color: pink; */
+}
+.audioBtn {
+    padding: 50rpx 0;
 }
 .duration {
     width: 100%;

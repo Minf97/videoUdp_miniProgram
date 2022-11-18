@@ -8,7 +8,7 @@ Component({
         // 状态栏高度
         statusBarHeight: app.globalData.statusBarHeight,
         // 头部高度
-        customBar: app.globalData.bottom + app.globalData.top - app.globalData.statusBarHeight
+        customBar: (app.globalData.top - app.globalData.statusBarHeight) * 2 + app.globalData.height
     },
     methods: {
 

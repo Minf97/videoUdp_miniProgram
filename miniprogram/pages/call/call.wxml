@@ -5,31 +5,55 @@
     </custom-header>
 
     <!-- 视频区域 -->
-    <image class="videoArea" src="{{imageSrc}}" mode="aspectFit" />
+    <view class="videoArea">
+        <image src="{{isVideo ? imageSrc : '../../assets/images/call/audioCall.png'}}" mode="aspectFit" style="width: {{isVideo ? '100%' : '450rpx'}}; height: {{isVideo ? '50vh' : '450rpx'}};" />
+    </view>
+
 
     <!-- 通话时长 -->
     <view class="duration">{{callDuration}}</view>
 
-    <!-- 按钮区域 -->
-    <view class="row">
-        <view class="boxColumn">
-            <image class="icon" src="../../assets/images/call/turnAudio.png" mode="widthFix" />
-            <view class="txt">转换至语音</view>
+    <!-- 视频按钮区域 -->
+    <view class="videoBtn" wx:if="{{isVideo}}">
+        <view class="row">
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/call/turnAudio.png" mode="widthFix" />
+                <view class="txt">转换至语音</view>
+            </view>
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/call/mirco.png" mode="widthFix" />
+                <view class="txt">麦克风开启</view>
+            </view>
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/call/slient.png" mode="widthFix" />
+                <view class="txt">扬声器关闭</view>
+            </view>
         </view>
-        <view class="boxColumn">
-            <image class="icon" src="../../assets/images/call/mirco.png" mode="widthFix" />
-            <view class="txt">麦克风开启</view>
-        </view>
-        <view class="boxColumn">
-            <image class="icon" src="../../assets/images/call/slient.png" mode="widthFix" />
-            <view class="txt">扬声器关闭</view>
+        <view class="row">
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/call/close.png" mode="widthFix" />
+                <view class="txt">关闭</view>
+            </view>
         </view>
     </view>
-    <view class="row">
-        <view class="boxColumn">
-            <image class="icon" src="../../assets/images/call/close.png" mode="widthFix" />
-            <view class="txt">关闭</view>
+    <!-- 视频按钮区域end -->
+
+    <!-- 语音按钮区域 -->
+    <view class="audioBtn" wx:if="{{!isVideo}}">
+        <view class="row">
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/call/closeMic.png" mode="widthFix" />
+                <view class="txt">麦克风关闭</view>
+            </view>
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/call/close.png" mode="widthFix" />
+                <view class="txt">关闭</view>
+            </view>
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/call/voice.png" mode="widthFix" />
+                <view class="txt">扬声器开启</view>
+            </view>
         </view>
     </view>
-    <!-- 按钮区域end -->
+    <!-- 语音按钮区域end -->
 </view>
