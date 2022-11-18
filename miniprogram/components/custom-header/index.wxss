@@ -4,3 +4,10 @@
     justify-content: center;
     align-items: center;
 }
+
+
+/* 标题 */
+.title {
+    font-size: 26rpx;
+}
+/* 标题end */

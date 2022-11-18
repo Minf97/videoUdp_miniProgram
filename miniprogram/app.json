@@ -1,8 +1,10 @@
 {
     "pages": [
         "pages/index/index",
-        "pages/more/more",
-        "pages/call/call"
+        "pages/call/call",
+        "pages/callByDevice/callByDevice",
+        "pages/bellLogs/bellLogs",
+        "pages/setting/setting"
     ],
     "window": {
         "backgroundTextStyle": "light",

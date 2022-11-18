@@ -63,7 +63,7 @@ var addWavHeader = function (samples:any, sampleRateTmp:any, sampleBits:any, cha
     return view.buffer;
 }
 
-export var pcm_wav = function (pcm:any, sampleRateTmp:any, sampleBits:any, channelCount:any) {
+export var pcm_wav = function (pcm:any, sampleRateTmp:any, sampleBits:any, channelCount:any):ArrayBufferLike {
     //根据pcm文件 填写 sampleRateTmp【采样率】（11025） 和sampleBits【采样精度】（16） channelCount【声道】（单声道1，双声道2）
     var fileResult = addWavHeader(pcm, sampleRateTmp, sampleBits, channelCount);
     return fileResult

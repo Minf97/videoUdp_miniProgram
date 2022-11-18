@@ -1,3 +1,7 @@
+<audio style="margin-top: 100rpx;" controls src="{{audioSrc}}" id="myAudio" loop></audio>
+
+<button bindtap="onAudio">播放</button>
+
 <view class="container">
     <!-- 自定义头部 -->
     <custom-header>
@@ -6,7 +10,7 @@
 
     <!-- 视频区域 -->
     <view class="videoArea">
-        <image src="{{isVideo ? imageSrc : '../../assets/images/call/audioCall.png'}}" mode="aspectFit" style="width: {{isVideo ? '100%' : '450rpx'}}; height: {{isVideo ? '50vh' : '450rpx'}};" />
+        <image src="{{isVideo ? imageSrc : '../../assets/images/call/audioCall.png'}}" mode="aspectFit" style="width: {{isVideo ? '100%' : '500rpx'}}; height: {{isVideo ? '50vh' : '500rpx'}};" />
     </view>
 
 
@@ -30,7 +34,7 @@
             </view>
         </view>
         <view class="row">
-            <view class="boxColumn">
+            <view bindtap="end" class="boxColumn">
                 <image class="icon" src="../../assets/images/call/close.png" mode="widthFix" />
                 <view class="txt">关闭</view>
             </view>

@@ -2,10 +2,8 @@
 App<IAppOption>({
     globalData: {},
     onLaunch() {
-        let systemInfo = wx.getSystemInfoSync();
-        let menuInfo = wx.getMenuButtonBoundingClientRect();
-        console.log(systemInfo, menuInfo);
-        
+        const systemInfo = wx.getSystemInfoSync();
+        const menuInfo = wx.getMenuButtonBoundingClientRect();
         this.globalData = Object.assign(this.globalData, systemInfo, menuInfo)
         // 登录
         wx.login({

@@ -1,24 +1,35 @@
 <view class="container">
 
     <view class="box">
-        <image class="bell" src="../../assets/images/index/{{isBellOn ? 'bell_active' : 'bell'}}.png" mode="widthFix"/>
-        <view class="power">电池电量：</view>
+
+        <!-- 门铃状态 -->
+        <image class="bell" src="../../assets/images/index/{{isBellOn ? 'bell_active' : 'bell'}}.png" mode="widthFix" />
+
+        <!-- 电池电量 -->
+        <view class="power">电池电量：
+            <image src="../../assets/images/index/power_green.png" mode="widthFix" />
+        </view>
+
+        <!-- 呼叫/设置 -->
         <view class="row">
-            <view class="boxColumn">
-                <image src="../../assets/images/index/video.png" mode="widthFix"/>
+            <navigator url="../call/call?isVideo=true" class="boxColumn">
+                <image src="../../assets/images/index/video.png" mode="widthFix" />
                 <view class="title">呼叫</view>
-            </view>
-            <view class="boxColumn">
-                <image src="../../assets/images/index/setting.png" mode="widthFix"/>
+            </navigator>
+            <navigator url="../setting/setting" class="boxColumn">
+                <image src="../../assets/images/index/setting.png" mode="widthFix" />
                 <view class="title">设置</view>
-            </view>
+            </navigator>
         </view>
     </view>
 
+    <!-- 信息记录 -->
     <view class="box">
         <view class="top">
             <view class="txt">记录</view>
-            <navigator url="../more/more" class="txt">更多 <image class="arrow" src="../../assets/images/index/down.png" mode="widthFix"/></navigator>
+            <navigator url="../bellLogs/bellLogs" class="txt">更多
+                <image class="arrow" src="../../assets/images/index/down.png" mode="widthFix" />
+            </navigator>
         </view>
 
         <view class="divid"></view>

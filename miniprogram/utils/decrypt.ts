@@ -11,26 +11,33 @@ class stackVideoImpl implements stack {
         this.frame_index = 0;
         this.imageContent = [];
     }
-    setImageContent(chunk_index: any, imageContent: any) {
+    setContent(chunk_index: any, imageContent: any) {
         // 如果该分包序号为空，则赋值
         if (this.imageContent[chunk_index] == undefined) {
             this.imageContent[chunk_index] = imageContent;
         }
         // 如果该分包序号不为空，则说明是第二次甚至第三次循环，应加255 + 1
         else {
-            this.setImageContent(chunk_index + 256, imageContent);
+            this.setContent(chunk_index + 256, imageContent);
         }
     }
-    getImageContent(): number[] {
+    getContent(): number[] {
         return this.imageContent.reduce((prev, cur) => {
             return prev.concat(cur)
         })
     }
 }
 class stackAudioImpl implements stack {
-    public session_id: string = ""
+    public audioContent = [];
+
     clearStack() {
-        this.session_id = "";
+        this.audioContent.splice(0, 60000);
+    }
+    setContent(audioContent: any[]) {
+        this.audioContent = this.audioContent.concat(audioContent as any)
+    }
+    getContent(): number[] {
+        return this.audioContent
     }
 }
 
@@ -63,13 +70,13 @@ export function decryptVideo(message: ArrayBufferLike) {
             stackVideo.frame_index = subPackage.frame_index;
         }
         // 进行分包排序
-        stackVideo.setImageContent(subPackage.chunk_index, subPackage.imageContent);
+        stackVideo.setContent(subPackage.chunk_index, subPackage.imageContent);
         // 该帧接收完毕
         if (
             subPackage.chunk_last == 1 &&
             !isArrayHasUndefined(stackVideo.imageContent)
         ) {
-            let video = arrayToAb2(stackVideo.getImageContent());
+            let video = arrayToAb2(stackVideo.getContent());
             stackVideo.clearStack();
             reslove(video);
         }
@@ -83,13 +90,26 @@ export function decryptVideo(message: ArrayBufferLike) {
 // http://doc.doit/project-23/doc-264/
 let stackAudio = new stackAudioImpl();
 export function decryptAudio(message: ArrayBufferLike) {
-    const len = message.byteLength;
-    return {
-        device_id: message.slice(0, 21),
-        session_id: message.slice(21, 25),
-        session_status: message.slice(25, 26),
-        data: message.slice(26, len)
-    }
+    return new Promise((reslove, reject) => {
+        const len = message.byteLength,
+            version = message.slice(0, 1),
+            device_id = message.slice(1, 21),
+            session_id = message.slice(21, 25),
+            session_status = message.slice(25, 26),
+            audioContent = ab2ToArr(message.slice(26, len));
+
+        stackAudio.setContent(audioContent);
+
+        if (stackAudio.audioContent.length > 60000) {
+            let audio = arrayToAb2(stackAudio.getContent());
+            stackAudio.clearStack();
+            reslove(audio)
+        }
+        else {
+            reject("数量小于 20000 :" + stackAudio.audioContent.length)
+        }
+    })
+
 }
 
 // 订阅视频流
@@ -101,7 +121,8 @@ export function decryptAudio(message: ArrayBufferLike) {
 // 30	用户当前的token
 // 4	session_id，表示一次通话的随机字符串，一般由设备端生成
 // 1	session_status，取值：0、1；1：通话有效；0：通话关闭
-export function subcribeVideo(device_id: Array<number>, session_id: Array<number>, session_status: Array<number>): ArrayBufferLike {
+export function subcribeVideo(): ArrayBufferLike {
+
     let arr = [];
     return new Int8Array(arr).buffer
 }

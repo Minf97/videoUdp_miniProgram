@@ -39,7 +39,7 @@ export class UDPSocket {
             port: this.port,
             message: message
         })
-        console.log(message, this.address, this.port);
+        // console.log(message, this.address, this.port);
     }
 
     close() {

@@ -28,10 +28,16 @@
     margin: 30rpx 0;
 }
 
+/* 电池电量 */
 .power {
     color: #707070;
     letter-spacing: 1rpx;
 }
+.power image {
+    width: 50rpx;
+    height: 50rpx;
+}
+/* 电池电量end */
 
 .row {
     width: 100%;

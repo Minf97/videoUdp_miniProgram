@@ -14,6 +14,13 @@
                     "query": "",
                     "launchMode": "default",
                     "scene": null
+                },
+                {
+                    "name": "callByDevice",
+                    "pathName": "pages/callByDevice/callByDevice",
+                    "query": "",
+                    "launchMode": "default",
+                    "scene": null
                 }
             ]
         }

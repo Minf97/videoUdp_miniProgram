@@ -69,3 +69,15 @@ export function ab2ToArr(arr: ArrayBufferLike) {
     return Array.prototype.slice.call(new Uint8Array(arr))
 }
 
+/**
+ * 将数组转化为arrayBuffer
+ * @param arr 数组
+ */
+export function arrayToAb2(arr: any[]) {
+    let buffer = new ArrayBuffer(arr.length);
+    let view = new Uint8Array(buffer)
+    for (let i = 0; i < arr.length; i++) {
+        view[i] = Number(arr[i]);
+    }
+    return buffer
+}

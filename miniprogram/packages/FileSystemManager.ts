@@ -1,6 +1,9 @@
 export class FileSystemManager {
-    constructor(public fs: any = undefined) {
-        fs = wx.getFileSystemManager();
+    public fs:WechatMiniprogram.FileSystemManager;
+
+    constructor() {
+        this.fs = wx.getFileSystemManager();
+        
     }
 
     readFile(filePath: string) {
@@ -19,10 +22,14 @@ export class FileSystemManager {
 
     writeFile(data: ArrayBufferLike, filePath: string) {
         return new Promise((reslove, reject) => {
+            console.log("开始");
+            
             this.fs.writeFile({
                 data,
                 filePath,
                 success: (res: any) => {
+                    console.log("结束");
+                    
                     reslove(res)
                 },
                 fail: (err: any) => {

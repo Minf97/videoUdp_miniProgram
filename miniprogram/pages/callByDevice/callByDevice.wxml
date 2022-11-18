@@ -1,0 +1,28 @@
+<view class="container">
+    <!-- 视频区域 -->
+    <view class="videoArea">
+        <image src="{{isVideo ? imageSrc : '../../assets/images/call/audioCall.png'}}" mode="aspectFit" style="width: {{isVideo ? '100%' : '500rpx'}}; height: {{isVideo ? '50vh' : '500rpx'}};" />
+    </view>
+
+    <!-- 提示文字 -->
+    <view class="info">有人按键或有人移动</view>
+
+    <!-- 按钮区域 -->
+    <view class="audioBtn" wx:if="{{!isVideo}}">
+        <view class="row">
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/callByDevice/audio.png" mode="widthFix" />
+                <view class="txt">语音接听</view>
+            </view>
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/callByDevice/close.png" mode="widthFix" />
+                <view class="txt">拒绝</view>
+            </view>
+            <view class="boxColumn">
+                <image class="icon" src="../../assets/images/callByDevice/video.png" mode="widthFix" />
+                <view class="txt">视频接听</view>
+            </view>
+        </view>
+    </view>
+    <!-- 按钮区域end -->
+</view>

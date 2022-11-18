@@ -1,4 +1,4 @@
-// pages/more/more.ts
+// pages/setting/setting.ts
 Page({
 
     /**

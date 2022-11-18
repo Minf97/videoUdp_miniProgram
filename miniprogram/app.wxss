@@ -5,6 +5,8 @@ page{
     --color-h3: #999999;
 }
 
+/* 动态适配iphoneX iphone11 等带安全区域的手机 */
 .container {
-
+    padding-bottom: calc(env(safe-area-inset-bottom));
+    box-sizing: border-box;
 }
