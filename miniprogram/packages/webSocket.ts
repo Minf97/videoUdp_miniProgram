@@ -11,16 +11,54 @@ export class webSocket {
 
     connectSocket() {
         return new Promise((reslove, reject) => {
-            wx.connectSocket({
+            this.ws = wx.connectSocket({
                 url: this.url,
                 success: res => {
-                    this.ws = res as unknown as WechatMiniprogram.SocketTask
                     reslove("连接成功")
                 },
                 fail: err => {
                     reject(err)
                 }
             })
+        })
+    }
+
+    send() {
+
+    }
+
+    ws_send(data) {
+        console.log(typeof (data));
+
+        return new Promise((reslove, reject) => {
+            this.ws.send({
+                data: data,
+                success: (res) => {
+                    reslove("ws_send_success:" + res)
+                },
+                fail: err => {
+                    reject(err);
+                }
+            })
+        })
+    }
+
+    assembleDataSend(msg, cmd) {
+        // let { device_key, device_id } = getApp().globalData.openDeviceInfo;
+        let device_key = '1519053727';
+        let device_id = '66885220c8478c000018';
+        let timestamp1 = Date.parse(new Date());
+        // 订阅
+        this.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
+        let message = `cmd=publish&topic=control_${device_id}&device_id=${device_id}&device_key=${device_key}&message={"cmd":${cmd},"pv":0,"sn":"${timestamp1}","msg":${msg}}`;
+        console.log("通过 socket 发送的 message.......", message);
+        this.ws_send(message)
+    }
+
+
+    onOpen(fn) {
+        this.ws.onOpen(() => {
+            return fn();
         })
     }
 }

@@ -31,7 +31,7 @@ class stackAudioImpl implements stack {
     public audioContent = [];
 
     clearStack() {
-        this.audioContent.splice(0, 60000);
+        this.audioContent.splice(0, 8960);
     }
     setContent(audioContent: any[]) {
         this.audioContent = this.audioContent.concat(audioContent as any)
@@ -60,7 +60,7 @@ export function decryptVideo(message: ArrayBufferLike) {
         }
         // console.log(stackVideo.frame_index, subPackage.frame_index, "frame_index");
         // console.log(stackVideo.imageContent, subPackage.imageContent, "imageContent");
-        console.log(subPackage.chunk_index, "本次的chunk_index");
+        // console.log(subPackage.chunk_index, "本次的chunk_index");
         // console.log("1.本次分包的解密信息：", subPackage);
 
 
@@ -90,6 +90,7 @@ export function decryptVideo(message: ArrayBufferLike) {
 // http://doc.doit/project-23/doc-264/
 let stackAudio = new stackAudioImpl();
 export function decryptAudio(message: ArrayBufferLike) {
+    const startTime = Date.now();
     return new Promise((reslove, reject) => {
         const len = message.byteLength,
             version = message.slice(0, 1),
@@ -100,9 +101,12 @@ export function decryptAudio(message: ArrayBufferLike) {
 
         stackAudio.setContent(audioContent);
 
-        if (stackAudio.audioContent.length > 60000) {
+        if (stackAudio.audioContent.length >= 10240) {
             let audio = arrayToAb2(stackAudio.getContent());
             stackAudio.clearStack();
+            const endTime = Date.now();
+            console.log("本次20000byte收集需要ms: ", endTime - startTime);
+
             reslove(audio)
         }
         else {
@@ -175,3 +179,7 @@ function isArrayHasUndefined(arr: any[]): boolean {
     }
     return false
 }
+
+
+
+

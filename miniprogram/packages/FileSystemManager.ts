@@ -23,13 +23,13 @@ export class FileSystemManager {
     writeFile(data: ArrayBufferLike, filePath: string) {
         return new Promise((reslove, reject) => {
             console.log("开始");
-            
+            const startTime = Date.now();
             this.fs.writeFile({
                 data,
                 filePath,
                 success: (res: any) => {
-                    console.log("结束");
-                    
+                    const endTime = Date.now();
+                    console.log("结束，本次写入文件需要ms:", endTime - startTime);
                     reslove(res)
                 },
                 fail: (err: any) => {

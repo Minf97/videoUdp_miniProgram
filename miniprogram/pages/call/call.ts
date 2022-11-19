@@ -9,7 +9,9 @@ import { stringToArrayBuffer } from "../../utils/util";
 
 // 获取应用实例
 const recorderManager = wx.getRecorderManager();
-const innerAudioContext = wx.createInnerAudioContext();
+const innerAudioContext = wx.createInnerAudioContext({
+    useWebAudioImplement: true
+});
 const fs = new FileSystemManager();
 const udpVideo = new UDPSocket({
     address: ADDRESS,
@@ -21,7 +23,7 @@ const udpAudio = new UDPSocket({
 });
 
 const options: WechatMiniprogram.RecorderManagerStartOption = {
-    duration: 60000, //指定录音的时长，单位 ms
+    duration: 600000, //指定录音的时长，单位 ms
     sampleRate: 8000, //采样率
     numberOfChannels: 1, //录音通道数
     encodeBitRate: 16000, //编码码率
@@ -78,7 +80,7 @@ Page({
         // 准备发送信息
         let version = 1;
         let token = 'ssssssssssssssssssssssssssssss'
-        let session_id = 'qqqq';
+        let session_id = '1677';
         let session_status = '1';
         let message: any = version + token + session_id + session_status;
         message = stringToArrayBuffer(message);
@@ -170,7 +172,11 @@ Page({
 
             let version = new Array(1).fill(1);
             let token = new Array(30).fill(115)
-            let session_id = new Array(4).fill(113);
+            let session_id = new Array(4);
+            session_id[0] = 49;
+            session_id[1] = 54;
+            session_id[2] = 55;
+            session_id[3] = 55;
             let session_status = new Array(1).fill(1);
             // 轮询发送信息，确保udp保持连接
             this.udpAudioTimer = setInterval(() => {
@@ -182,7 +188,6 @@ Page({
                 else return;
 
                 // console.log(audioData.length, "本次要发送的长度");
-
                 let sendMsg: any[] = [];
                 sendMsg = sendMsg.concat(version, token, session_id, session_status, audioData);
 
@@ -195,10 +200,11 @@ Page({
         })
     }
 })
-
+let startTime;
 // 录音
 recorderManager.onStart(() => {
-    console.log('recorder start')
+    console.log('recorder start');
+    startTime = Date.now();
 })
 recorderManager.onPause(() => {
     console.log('recorder pause')
@@ -225,6 +231,7 @@ recorderManager.onStop((res) => {
 
 // 播放器
 innerAudioContext.autoplay = true;
+
 innerAudioContext.onPlay(() => {
     console.log("audio start");
 })
@@ -234,5 +241,8 @@ innerAudioContext.onStop(() => {
 innerAudioContext.onEnded(() => {
     let src = stack.splice(0, 1).join("");
     console.log("audio end，马上播放" + src);
+    let endTime = Date.now();
+    console.log("audio end, 本次录音播放时长：", endTime - startTime);
+
     innerAudioContext.src = src
 })

@@ -1,6 +1,3 @@
-<audio style="margin-top: 100rpx;" controls src="{{audioSrc}}" id="myAudio" loop></audio>
-
-<button bindtap="onAudio">播放</button>
 
 <view class="container">
     <!-- 自定义头部 -->
