@@ -12,10 +12,10 @@
 
         <!-- 呼叫/设置 -->
         <view class="row">
-            <navigator url="../call/call?isVideo=true" class="boxColumn">
+            <view class="boxColumn" bindtap="callToDevice">
                 <image src="../../assets/images/index/video.png" mode="widthFix" />
                 <view class="title">呼叫</view>
-            </navigator>
+            </view>
             <navigator url="../setting/setting" class="boxColumn">
                 <image src="../../assets/images/index/setting.png" mode="widthFix" />
                 <view class="title">设置</view>

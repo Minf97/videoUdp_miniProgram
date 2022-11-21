@@ -32,27 +32,27 @@ export function hexToStr(hex: string | number) {
 }
 
 /**
- * 字符串转16进制
+ * 字符串转ascii码值
  * @param str 字符串
  */
-export function strToHex(str: string) {
+export function strToAscii(str: string): string {
     var val = "";
     for (var i = 0; i < str.length; i++) {
         if (val == "")
-            val = str.charCodeAt(i).toString(16);
+            val = str.charCodeAt(i).toString(10);
         else
-            val += "," + str.charCodeAt(i).toString(16);
+            val += "," + str.charCodeAt(i).toString(10);
     }
     return val;
 }
 
 /**
- * 将字符串转化16进制为arraryBuffer
+ * 将字符串转化为16进制的arraryBuffer
  * @param str 字符串
  */
 export function stringToArrayBuffer(str: string) { // utf16 不管是字符还是汉字
     let buffer = new ArrayBuffer(str.length);
-    let view = new Uint8Array(buffer)
+    let view = new Uint8Array(buffer);
     for (let i = 0; i < str.length; i++) {
         view[i] = str.charCodeAt(i)
     }

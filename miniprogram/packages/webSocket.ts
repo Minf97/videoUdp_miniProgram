@@ -23,10 +23,6 @@ export class webSocket {
         })
     }
 
-    send() {
-
-    }
-
     ws_send(data) {
         console.log(typeof (data));
 
@@ -43,11 +39,18 @@ export class webSocket {
         })
     }
 
+    /**
+     * 订阅指定设备device_id
+     */
+    subcribe(device_id: string, device_key: string) {
+        this.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
+    }
+
     assembleDataSend(msg, cmd) {
         // let { device_key, device_id } = getApp().globalData.openDeviceInfo;
         let device_key = '1519053727';
-        let device_id = '66885220c8478c000018';
-        let timestamp1 = Date.parse(new Date());
+        let device_id = '66901360c8478c002332';
+        let timestamp1 = Date.parse(new Date() as any);
         // 订阅
         this.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
         let message = `cmd=publish&topic=control_${device_id}&device_id=${device_id}&device_key=${device_key}&message={"cmd":${cmd},"pv":0,"sn":"${timestamp1}","msg":${msg}}`;
@@ -55,7 +58,10 @@ export class webSocket {
         this.ws_send(message)
     }
 
-
+    /**
+     * websocket连接打开
+     * @param fn 要执行的函数
+     */
     onOpen(fn) {
         this.ws.onOpen(() => {
             return fn();

@@ -2,16 +2,21 @@
 import { formatTime, ab2ToArr, arrayToAb2 } from "../../utils/util";
 import { FileSystemManager } from "../../packages/FileSystemManager";
 import { pcm_wav } from "../../packages/pcm_to_wav";
-import { ADDRESS, PORT_AUDIO, PORT_VIDEO } from "../../constants/server";
 import { decryptVideo, decryptAudio } from "../../utils/decrypt";
 import { UDPSocket } from "../../packages/udp";
-import { stringToArrayBuffer } from "../../utils/util";
+import { strToAscii } from "../../utils/util";
+import { recorder, options } from "../../packages/RecorderManager";
+import { InnerAudioContext } from "../../packages/InnerAudioContext"
+import {
+    ADDRESS,
+    PORT_AUDIO,
+    PORT_VIDEO,
+    CONNECTION_VIDEOCHANNEL_TIMEOUT,
+    CONNECTION_AUDIOCHANNEL_TIMEOUT
+} from "../../constants/server";
 
-// 获取应用实例
-const recorderManager = wx.getRecorderManager();
-const innerAudioContext = wx.createInnerAudioContext({
-    useWebAudioImplement: true
-});
+
+// 获取应用实例对象
 const fs = new FileSystemManager();
 const udpVideo = new UDPSocket({
     address: ADDRESS,
@@ -21,42 +26,60 @@ const udpAudio = new UDPSocket({
     address: ADDRESS,
     port: PORT_AUDIO
 });
+// 获取应用实例对象end
 
-const options: WechatMiniprogram.RecorderManagerStartOption = {
-    duration: 600000, //指定录音的时长，单位 ms
-    sampleRate: 8000, //采样率
-    numberOfChannels: 1, //录音通道数
-    encodeBitRate: 16000, //编码码率
-    format: 'PCM', //音频格式，有效值 aac/mp3等  
-    frameSize: 1,  // 2kb
+// 协议请求头
+const HEADER_SENDMESSAGE = {
+    version: new Array(1).fill(1),
+    token: new Array(30).fill(115),
+    session_id: strToAscii(wx.getStorageSync("session_id")).split(","),
+    session_status: new Array(1).fill(1),
 }
-let stack: any[] = [];
+
 Page({
     data: {
         // 是否是视频通话
-        isVideo: false,
-        // 通话开始时间
-        startTime: 1668677527288,
+        isVideo: true,
         // 通话持续时间
         callDuration: "00 : 00 : 00",
+        // 是否开启麦克风
+        isOpenMicro: true,
+        // 是否开启扬声器
+        isOpenLoudSpeaker: true,
+
+        src: '',
     },
+
     // 控制udp视频通信的定时器
     udpVideoTimer: 0,
     // 控制udp语音通信的定时器
     udpAudioTimer: 0,
     // 控制通话持续时间的定时器
     durationTimer: 0,
+
+    audioCtx: wx.createAudioContext('myAudio'),
+
+    onReady() {
+        // this.audioCtx = wx.createAudioContext('myAudio');
+
+
+        this.audioCtx.setSrc("http://ws.stream.qqmusic.qq.com/M500001VfvsJ21xFqb.mp3?guid=ffffffff82def4af4b12b3cd9337d5e7&uin=346897220&vkey=6292F51E1E384E06DCBDC9AB7C49FD713D632D313AC4858BACB8DDD29067D3C601481D36E62053BF8DFEAF74C0A5CCFADD6471160CAF3E6A&fromtag=46");
+        console.log("sdfsdf");
+
+        this.audioCtx.play()
+    },
     onLoad(options) {
         const { isVideo } = options;
         this.setData({
             isVideo: isVideo as unknown as boolean
         })
         this.startVideoCall();
-        this.demo();
+        this.startTiming();
     },
 
+    // 开始倒计时
     startTiming() {
-        const { startTime } = this.data;
+        const startTime = Date.now();
         this.durationTimer = setInterval(() => {
             this.setData({
                 callDuration: formatTime(startTime)
@@ -64,32 +87,31 @@ Page({
         }, 1000)
     },
 
+    // 开始视频通话
     startVideoCall() {
-
-        this.prepareVideo();
-        this.prepareAudio();
-
-        recorderManager.start(options);
+        this.startVideoChannel();
+        this.startAudioChannel();
+        recorder.start(options);
     },
 
-    prepareVideo() {
+    // 开启视频流通道
+    startVideoChannel() {
         // udp连接
         udpVideo.bind();
         udpVideo.connect();
 
         // 准备发送信息
-        let version = 1;
-        let token = 'ssssssssssssssssssssssssssssss'
-        let session_id = '1677';
-        let session_status = '1';
-        let message: any = version + token + session_id + session_status;
-        message = stringToArrayBuffer(message);
-        console.log(message);
+        const version: any = new Array(1).fill(1);
+        const token: any = new Array(30).fill(115);
+        const session_id: any = strToAscii(wx.getStorageSync("session_id")).split(",");
+        const session_status: any = new Array(1).fill(1);
+        const sendMsg: any[] = [].concat(version, token, session_id, session_status);
+        const buf = arrayToAb2(sendMsg);
 
         // 轮询发送信息，确保udp保持连接
         this.udpVideoTimer = setInterval(() => {
-            udpVideo.write(message);
-        }, 2000)
+            udpVideo.write(buf);
+        }, CONNECTION_VIDEOCHANNEL_TIMEOUT)
 
         // 监听消息
         let pre = 0;
@@ -110,10 +132,49 @@ Page({
         })
     },
 
-    prepareAudio() {
+    // 开启音频流通道
+    startAudioChannel() {
         // udp连接
         udpAudio.bind();
         udpAudio.connect();
+
+        // 准备发送信息
+        let stack = [];
+        recorder.onFrameRecorded((res) => {
+            const { frameBuffer } = res;
+            const frameArr = ab2ToArr(frameBuffer);
+
+            // 由于每次最低都有2000B（时间间隔是 120ms），超过了协议1280B，因此用分包发送的方式
+            // 将framebuf转数组，每次拿到framebuf就拼接进stack
+            // 每次发送就从stack里拿
+            stack = stack.concat(frameArr);
+
+            const version: any = new Array(1).fill(1);
+            const token: any = new Array(30).fill(115);
+            const session_id: any = strToAscii(wx.getStorageSync("session_id")).split(",");
+            const session_status: any = new Array(1).fill(1);
+
+            // 轮询发送信息，确保udp保持连接
+            this.udpAudioTimer = setInterval(() => {
+                let audioData = [];
+                if (stack.length > 1280)
+                    audioData = stack.splice(0, 1280);
+                else if (stack.length > 960)
+                    audioData = stack.splice(0, 960);
+                else if (stack.length > 640)
+                    audioData = stack.splice(0, 640);
+                else if (stack.length > 320)
+                    audioData = stack.splice(0, 320);
+                else return;
+
+                const sendMsg: any[] = [].concat(version, token, session_id, session_status, audioData);
+                const buf = arrayToAb2(sendMsg);
+                if (audioData.length > 100) {
+                    udpAudio.write(buf);
+                }
+
+            }, CONNECTION_AUDIOCHANNEL_TIMEOUT)
+        })
 
         // 监听消息
         udpAudio.udp.onMessage(res => {
@@ -124,125 +185,48 @@ Page({
                 const view = pcm_wav(res, '8000', '16', '1');
                 return fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
             }).then(() => {
-                innerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
-                // if (!innerAudioContext.src) {
-                //     console.log("是第一次，对src赋值");
-                //     innerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
-                // }
-                // else {
-                //     console.log("写入文件完成，是", `${wx.env.USER_DATA_PATH}/${dateNow}.wav`);
-                //     stack.push(`${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-                // }
-            }).catch(err => {
-
-            })
-
-
-            // let pcmbuf = decryptAudio(message);
-            // if (typeof (pcmbuf) != 'string') {
-            //     const view = pcm_wav(pcmbuf, '8000', '16', '1');
-            //     fs.fs.writeFile({
-            //         data: view,
-            //         filePath: `${wx.env.USER_DATA_PATH}/${dateNow}.wav`,
-            //         success: res => {
-            //             innerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
-            //         }
-            //     })
-            // }
-
+                InnerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
+            }).catch(() => { })
         })
     },
-    end() {
+
+    // 断开连接
+    closeCall() {
         udpVideo.close();
         udpAudio.close();
         clearInterval(this.udpVideoTimer);
-        clearInterval(this.udpVideoTimer);
-        recorderManager.stop();
+        clearInterval(this.udpAudioTimer);
+        recorder.stop();
+        InnerAudioContext.stop();
     },
-    demo() {
-        let stack = [];
-        recorderManager.onFrameRecorded((res) => {
-            const { frameBuffer } = res;
-            const frameArr = ab2ToArr(frameBuffer);
 
-            // 由于每次最低都有2000B（时间间隔是 120ms），超过了协议1280B，因此用分包发送的方式
-            // 将framebuf转数组，每次拿到framebuf就拼接进stack
-            // 每次发送就从stack里拿
-            stack = stack.concat(frameArr);
+    // 监听语音/视频切换事件
+    onChangeSwitch() {
+        const { isVideo } = this.data;
+        this.setData({ isVideo: !isVideo })
+    },
 
-            let version = new Array(1).fill(1);
-            let token = new Array(30).fill(115)
-            let session_id = new Array(4);
-            session_id[0] = 49;
-            session_id[1] = 54;
-            session_id[2] = 55;
-            session_id[3] = 55;
-            let session_status = new Array(1).fill(1);
-            // 轮询发送信息，确保udp保持连接
-            this.udpAudioTimer = setInterval(() => {
-                let audioData = [];
-                if (stack.length > 1280) audioData = stack.splice(0, 1280);
-                else if (stack.length > 960) audioData = stack.splice(0, 960);
-                else if (stack.length > 640) audioData = stack.splice(0, 640);
-                else if (stack.length > 320) audioData = stack.splice(0, 320);
-                else return;
+    // 监听麦克风开启/关闭事件
+    onChangeMicro() {
+        const { isOpenMicro } = this.data;
 
-                // console.log(audioData.length, "本次要发送的长度");
-                let sendMsg: any[] = [];
-                sendMsg = sendMsg.concat(version, token, session_id, session_status, audioData);
+        if (!isOpenMicro == true)
+            recorder.start(options);
+        if (!isOpenMicro == false)
+            recorder.stop();
+        this.setData({ isOpenMicro: !isOpenMicro })
+    },
 
-                let buf = arrayToAb2(sendMsg);
-                if (audioData.length > 100) {
-                    udpAudio.write(buf);
-                }
-            }, 30)
-
-        })
+    // 监听扬声器开启/关闭事件
+    onChangeLoudSpeaker() {
+        const { isOpenLoudSpeaker } = this.data;
+        if (!isOpenLoudSpeaker == true)
+            recorder.start(options);
+        if (!isOpenLoudSpeaker == false)
+            recorder.stop();
+        this.setData({ isOpenLoudSpeaker: !isOpenLoudSpeaker })
     }
 })
-let startTime;
-// 录音
-recorderManager.onStart(() => {
-    console.log('recorder start');
-    startTime = Date.now();
-})
-recorderManager.onPause(() => {
-    console.log('recorder pause')
-})
-recorderManager.onStop((res) => {
-    // return
-    console.log('recorder stop', res)
-    const { tempFilePath } = res;
-    console.log(tempFilePath);
-
-    const dateNow = Date.now();
-
-    fs.readFile(tempFilePath).then(res => {
-        const view = pcm_wav((res as any)?.data, '8000', '16', '1');
-        return fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-    }).then(() => {
-        innerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
-    }).catch(err => {
-        console.log(err);
-    })
-})
 
 
 
-// 播放器
-innerAudioContext.autoplay = true;
-
-innerAudioContext.onPlay(() => {
-    console.log("audio start");
-})
-innerAudioContext.onStop(() => {
-    console.log("audio stop");
-})
-innerAudioContext.onEnded(() => {
-    let src = stack.splice(0, 1).join("");
-    console.log("audio end，马上播放" + src);
-    let endTime = Date.now();
-    console.log("audio end, 本次录音播放时长：", endTime - startTime);
-
-    innerAudioContext.src = src
-})

@@ -21,6 +21,13 @@
                     "query": "",
                     "launchMode": "default",
                     "scene": null
+                },
+                {
+                    "name": "setting",
+                    "pathName": "pages/setting/setting",
+                    "query": "",
+                    "launchMode": "default",
+                    "scene": null
                 }
             ]
         }

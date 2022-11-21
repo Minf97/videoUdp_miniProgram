@@ -1,4 +1,6 @@
 
+<audio src="{{src}}" id="myAudio" ></audio>
+
 <view class="container">
     <!-- 自定义头部 -->
     <custom-header>
@@ -9,6 +11,7 @@
     <view class="videoArea">
         <image src="{{isVideo ? imageSrc : '../../assets/images/call/audioCall.png'}}" mode="aspectFit" style="width: {{isVideo ? '100%' : '500rpx'}}; height: {{isVideo ? '50vh' : '500rpx'}};" />
     </view>
+    <!-- 视频区域end -->
 
 
     <!-- 通话时长 -->
@@ -17,21 +20,21 @@
     <!-- 视频按钮区域 -->
     <view class="videoBtn" wx:if="{{isVideo}}">
         <view class="row">
-            <view class="boxColumn">
+            <view class="boxColumn" bindtap="onChangeSwitch">
                 <image class="icon" src="../../assets/images/call/turnAudio.png" mode="widthFix" />
                 <view class="txt">转换至语音</view>
             </view>
-            <view class="boxColumn">
-                <image class="icon" src="../../assets/images/call/mirco.png" mode="widthFix" />
-                <view class="txt">麦克风开启</view>
+            <view class="boxColumn" bindtap="onChangeMicro">
+                <image class="icon" src="../../assets/images/call/mirco{{isOpenMicro ? '' : '_close'}}.png" mode="widthFix" />
+                <view class="txt">麦克风{{isOpenMicro ? '开启' : '关闭'}}</view>
             </view>
-            <view class="boxColumn">
-                <image class="icon" src="../../assets/images/call/slient.png" mode="widthFix" />
-                <view class="txt">扬声器关闭</view>
+            <view class="boxColumn" bindtap="onChangeLoudSpeaker">
+                <image class="icon" src="../../assets/images/call/voice{{isOpenLoudSpeaker ? '' : '_close'}}.png" mode="widthFix" />
+                <view class="txt">扬声器{{isOpenVoice ? '开启' : '关闭'}}</view>
             </view>
         </view>
         <view class="row">
-            <view bindtap="end" class="boxColumn">
+            <view class="boxColumn" bindtap="closeCall">
                 <image class="icon" src="../../assets/images/call/close.png" mode="widthFix" />
                 <view class="txt">关闭</view>
             </view>
@@ -42,17 +45,17 @@
     <!-- 语音按钮区域 -->
     <view class="audioBtn" wx:if="{{!isVideo}}">
         <view class="row">
-            <view class="boxColumn">
-                <image class="icon" src="../../assets/images/call/closeMic.png" mode="widthFix" />
-                <view class="txt">麦克风关闭</view>
+            <view class="boxColumn" bindtap="onChangeMicro">
+                <image class="icon" src="../../assets/images/call/mirco{{isOpenMicro ? '' : '_close'}}.png" mode="widthFix" />
+                <view class="txt">麦克风{{isOpenMicro ? '开启' : '关闭'}}</view>
             </view>
-            <view class="boxColumn">
+            <view class="boxColumn" bindtap="closeCall">
                 <image class="icon" src="../../assets/images/call/close.png" mode="widthFix" />
                 <view class="txt">关闭</view>
             </view>
-            <view class="boxColumn">
-                <image class="icon" src="../../assets/images/call/voice.png" mode="widthFix" />
-                <view class="txt">扬声器开启</view>
+            <view class="boxColumn" bindtap="onChangeLoudSpeaker">
+                <image class="icon" src="../../assets/images/call/voice{{isOpenLoudSpeaker ? '' : '_close'}}.png" mode="widthFix" />
+                <view class="txt">扬声器{{isOpenVoice ? '开启' : '关闭'}}</view>
             </view>
         </view>
     </view>
