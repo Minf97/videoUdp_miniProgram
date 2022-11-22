@@ -29,7 +29,7 @@
     },
     "include": [
         "./**/*.ts"
-, "miniprogram/packages/pcm_to_wav.ts"    ],
+, "miniprogram/packages/pcm_to_wav.ts", "miniprogram/packages/Udp.js"    ],
     "exclude": [
         "node_modules"
     ]
