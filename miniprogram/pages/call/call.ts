@@ -5,7 +5,7 @@ import { pcm_wav } from "../../packages/pcm_to_wav";
 import { decryptVideo, decryptAudio } from "../../utils/decrypt";
 import { recorder, options } from "../../packages/RecorderManager";
 import { InnerAudioContext } from "../../packages/InnerAudioContext"
-import { media } from "../../packages/control"
+import { media } from "../../packages/Control"
 
 // 获取应用实例对象
 const fs = new FileSystemManager();

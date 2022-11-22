@@ -136,6 +136,7 @@ class Media {
             // 发包
             this.udpAudioSocket.send(arrayToAb2(messageArr))
 
+            
         }, CONNECTION_AUDIOCHANNEL_TIMEOUT)
     }
 

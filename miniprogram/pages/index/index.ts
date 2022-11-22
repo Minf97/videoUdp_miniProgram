@@ -1,4 +1,4 @@
-import { media } from "../../packages/control";
+import { media } from "../../packages/Control";
 import { decryptResponse } from "../../utils/decrypt";
 
 
