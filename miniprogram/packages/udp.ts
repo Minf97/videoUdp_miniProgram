@@ -33,14 +33,14 @@ export class UDPSocket {
         })
     }
 
-    write(message) {
-        this.udp.write({
-            address: this.address,
-            port: this.port,
-            message: message
-        })
-        console.log(message, this.address, this.port);
-    }
+    // write(message) {
+    //     this.udp.write({
+    //         address: this.address,
+    //         port: this.port,
+    //         message: message
+    //     })
+    //     console.log(message, this.address, this.port);
+    // }
 
     close() {
         this.udp.close();

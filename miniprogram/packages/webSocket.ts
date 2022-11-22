@@ -13,7 +13,7 @@ export class WebSocket {
         return new Promise((reslove, reject) => {
             this.ws = wx.connectSocket({
                 url: this.url,
-                success: res => {
+                success: () => {
                     reslove("连接成功")
                 },
                 fail: err => {
