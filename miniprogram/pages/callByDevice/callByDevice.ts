@@ -1,9 +1,5 @@
+import { media } from "../../packages/control"
 
-import { ADDRESS_WEBSOCKET } from "../../constants/server";
-import { webSocket } from "../../packages/webSocket";
-import {ws} from "../index/index"
-
-const websocket = ws
 
 Page({
     data: {
@@ -26,7 +22,7 @@ Page({
                 117: 3 //内网通信+
             }
         }
-        websocket.assembleDataSend(JSON.stringify(msg), 3);
+        media.assembleDataSend(JSON.stringify(msg), 3);
         wx.navigateTo({
             url: "./../call/call?isVideo=true"
         })

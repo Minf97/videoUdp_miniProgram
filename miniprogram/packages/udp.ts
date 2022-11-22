@@ -23,7 +23,7 @@ export class UDPSocket {
             port: this.port,
             message: message
         })
-        console.log(message, this.address, this.port);
+        console.log(message, this.address, this.port, "send23333");
     }
 
     connect() {
@@ -46,5 +46,10 @@ export class UDPSocket {
         this.udp.close();
     }
 
-    
+    onMessage(fn: Function) {
+        this.udp.onMessage(res => {
+            const { message } = res;
+            return fn(message);
+        })
+    }
 }

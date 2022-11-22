@@ -58,9 +58,9 @@ export function decryptVideo(message: ArrayBufferLike) {
             chunk_last: handleAb2(message.slice(28, 29)),
             imageContent: ab2ToArr(message.slice(29, len))
         }
-        console.log(stackVideo.frame_index, subPackage.frame_index, "frame_index");
+        // console.log(stackVideo.frame_index, subPackage.frame_index, "frame_index");
         // console.log(stackVideo.imageContent, subPackage.imageContent, "imageContent");
-        console.log(subPackage.chunk_index, "本次的chunk_index");
+        // console.log(subPackage.chunk_index, "本次的chunk_index");
         // console.log("1.本次分包的解密信息：", subPackage);
 
 
@@ -89,14 +89,17 @@ export function decryptVideo(message: ArrayBufferLike) {
 
 // http://doc.doit/project-23/doc-264/
 let stackAudio = new stackAudioImpl();
+/**
+ * 解密音频流通道信息
+ * @param message udp服务器返回的音频数据包
+ */
 export function decryptAudio(message: ArrayBufferLike) {
-    const startTime = Date.now();
     return new Promise((reslove, reject) => {
         const len = message.byteLength,
-            version = message.slice(0, 1),
-            device_id = message.slice(1, 21),
-            session_id = message.slice(21, 25),
-            session_status = message.slice(25, 26),
+            // version = message.slice(0, 1),
+            // device_id = message.slice(1, 21),
+            // session_id = message.slice(21, 25),
+            // session_status = message.slice(25, 26),
             audioContent = ab2ToArr(message.slice(26, len));
 
         stackAudio.setContent(audioContent);
@@ -104,9 +107,6 @@ export function decryptAudio(message: ArrayBufferLike) {
         if (stackAudio.audioContent.length >= 5120) {
             let audio = arrayToAb2(stackAudio.getContent());
             stackAudio.clearStack();
-            const endTime = Date.now();
-            console.log("本次20000byte收集需要ms: ", endTime - startTime);
-
             reslove(audio)
         }
         else {
@@ -116,66 +116,45 @@ export function decryptAudio(message: ArrayBufferLike) {
 
 }
 
-// 订阅视频流
-// 日期：2022-11-16
-// 用于用户侧订阅消息；用户端在内网向设备端推送、在公网向服务器端推送。该消息每隔2秒发送一次
-// UDP协议如下
-// 长度	含义
-// 1	版本号，当前为1
-// 30	用户当前的token
-// 4	session_id，表示一次通话的随机字符串，一般由设备端生成
-// 1	session_status，取值：0、1；1：通话有效；0：通话关闭
-export function subcribeVideo(): ArrayBufferLike {
 
-    let arr = [];
-    return new Int8Array(arr).buffer
-}
-
-// 编写日期： 2022-11-16
-// App侧使用该协议在外网向服务器端推送、在内网向设备推送
-// 模组原始采集的音频为PCM编码格式，采样率为8Khz，编码为16bit，单声道
-// 协议如下：
-// 列名	列名
-// 1	版本号，当前为1
-// 30	用户当前token
-// 4	session_id，表示一次通话的随机字符串，一般由设备端生成
-// 1	session_status，取值：0、1；1：通话有效；0：通话关闭
-// 剩余长度	320字节的整数倍，上限1280字节，发送一般为1280字节
-
-
-
+/**
+ * 解密设备端的应答信息 http://doc.doit/project-5/doc-8/
+ * @param deviceResponse 设备的应答信息
+ */
 export function decryptResponse(deviceResponse) {
 
-    var dataMsg = deviceResponse.split("message=")[1];
+    let msg = deviceResponse as string;
+
+    const dataMsg = msg.split("message=")[1];
     if (dataMsg != undefined) {
-        var message = JSON.parse(dataMsg);
+        const message = JSON.parse(dataMsg);
         console.log(message, "解析完成");
-        let cmd = message.cmd;
+        const cmd = message.cmd;
         if (message.msg != undefined && message.msg.data != undefined) {
             const dpid = message.msg.data;
-            // 收到的信息包括 101,107,110,115,116
+            // 可能收到的信息包括 101,107,110,111,112,114,115,116
             const device_request_call = dpid["101"];
             const device_request_call_reason = dpid["107"];
             const session_id = dpid["110"];
+            const user_call = dpid["111"];
+            const call_type = dpid["112"];
+            const device_close_reason = dpid["114"];
             const video_resolution = dpid["115"];
             const video_fps = dpid["116"];
 
-            console.log(device_request_call, dpid[101], dpid["101"]);
-
+            wx.setStorageSync("session_id", session_id);
             // 如果设备发起呼叫，则跳转
             if (device_request_call == 1) {
                 wx.navigateTo({
                     url: "../callByDevice/callByDevice",
-                    success: res => {
-                        console.log(res);
-                    },
-                    fail: err => {
-                        console.log(err);
-
-                    }
                 })
             }
-            wx.setStorageSync("session_id", session_id);
+            // 设备应答
+            if (user_call == 1) {
+                wx.navigateTo({
+                    url: "../call/call?isVideo=true",
+                })
+            }
         }
     }
 }

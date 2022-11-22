@@ -3,5 +3,6 @@
     "navigationStyle": "custom",
     "usingComponents": {
         "custom-header": "../../components/custom-header/index"
-    }
+    },
+    "disableScroll": true
 }

@@ -1,9 +1,9 @@
 // 1.7.0 及以上版本，最多可以同时存在 5 个 WebSocket 连接。
 // 1.7.0 以下版本，一个小程序同时只能有一个 WebSocket 连接，如果当前已存在一个 WebSocket 连接，会自动关闭该连接，并重新创建一个 WebSocket 连接。
 
-export class webSocket {
+export class WebSocket {
     public url: string;
-    public ws: WechatMiniprogram.SocketTask;
+    public ws: WechatMiniprogram.SocketTask | any;
 
     constructor(url: string) {
         this.url = url;
@@ -49,7 +49,7 @@ export class webSocket {
     assembleDataSend(msg, cmd) {
         // let { device_key, device_id } = getApp().globalData.openDeviceInfo;
         let device_key = '1519053727';
-        let device_id = '66901360c8478c002332';
+        let device_id = '66901624c8478c000018';
         let timestamp1 = Date.parse(new Date() as any);
         // 订阅
         this.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)

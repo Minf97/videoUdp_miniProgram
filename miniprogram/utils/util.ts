@@ -35,7 +35,11 @@ export function hexToStr(hex: string | number) {
  * 字符串转ascii码值
  * @param str 字符串
  */
-export function strToAscii(str: string): string {
+export function strToAscii(str: string | number): string {
+    if(typeof(str) == 'number') {
+        str = str.toString();
+    }
+
     var val = "";
     for (var i = 0; i < str.length; i++) {
         if (val == "")
@@ -75,7 +79,7 @@ export function ab2ToArr(arr: ArrayBufferLike) {
  */
 export function arrayToAb2(arr: any[]) {
     let buffer = new ArrayBuffer(arr.length);
-    let view = new Uint8Array(buffer)
+    let view = new Uint8Array(buffer);
     for (let i = 0; i < arr.length; i++) {
         view[i] = Number(arr[i]);
     }
