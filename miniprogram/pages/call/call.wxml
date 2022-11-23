@@ -29,7 +29,7 @@
             </view>
             <view class="boxColumn" bindtap="onChangeLoudSpeaker">
                 <image class="icon" src="../../assets/images/call/voice{{isOpenLoudSpeaker ? '' : '_close'}}.png" mode="widthFix" />
-                <view class="txt">扬声器{{isOpenVoice ? '开启' : '关闭'}}</view>
+                <view class="txt">扬声器{{isOpenLoudSpeaker ? '开启' : '关闭'}}</view>
             </view>
         </view>
         <view class="row">

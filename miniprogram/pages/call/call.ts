@@ -1,14 +1,7 @@
 
 import { formatTime } from "../../utils/util";
-import { FileSystemManager } from "../../packages/FileSystemManager";
-import { pcm_wav } from "../../packages/pcm_to_wav";
-import { decryptVideo, decryptAudio } from "../../utils/decrypt";
-import { recorder, options } from "../../packages/RecorderManager";
-import { InnerAudioContext } from "../../packages/InnerAudioContext"
 import { media } from "../../packages/Control"
 
-// 获取应用实例对象
-const fs = new FileSystemManager();
 
 // 协议请求头
 const HEADER_SENDMESSAGE = {
@@ -17,6 +10,9 @@ const HEADER_SENDMESSAGE = {
     session_id: wx.getStorageSync("session_id"),
     session_status: 1,
 }
+const InnerAudioContext = wx.createInnerAudioContext({
+    useWebAudioImplement: true
+});
 
 Page({
     data: {
@@ -61,38 +57,24 @@ Page({
     startVideoChannel() {
         media.subscribeVideo(HEADER_SENDMESSAGE)
         media.onMessageUDPVideo(res => {
-            decryptVideo(res).then(video => {
-                const base64Img = wx.arrayBufferToBase64(video as ArrayBufferLike);
-                this.setData({
-                    imageSrc: `data:image/png;base64,${base64Img}`
-                })
-            });
+            const base64Img = wx.arrayBufferToBase64(res as ArrayBufferLike);
+            this.setData({
+                imageSrc: `data:image/png;base64,${base64Img}`
+            })
         })
 
     },
 
     // 开启音频流通道
     startAudioChannel() {
-        recorder.start(options);
-        recorder.onFrameRecorded((res) => {
-            const { frameBuffer } = res;
-            const message = {
-                ...HEADER_SENDMESSAGE,
-                audioData: frameBuffer
-            }
-            media.subscribeAudio(message);
-        })
-
+        media.microState(true);
+        media.subscribeAudio(HEADER_SENDMESSAGE);
         media.onMessageUDPAudio(res => {
-            const dateNow = Date.now();
-            decryptAudio(res).then(res => {
-                const view = pcm_wav(res, '8000', '16', '1');
-                return fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-            }).then(() => {
-                InnerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
-            }).catch(() => { })
+            // console.log(res);
+            InnerAudioContext.src = res;
+            
         })
-
+        InnerAudioContext.play();
     },
 
     // 断开连接
@@ -117,11 +99,10 @@ Page({
     // 监听麦克风开启/关闭事件
     onChangeMicro() {
         const { isOpenMicro } = this.data;
-
         if (!isOpenMicro == true)
-            recorder.start(options);
+            media.microState(true);
         if (!isOpenMicro == false)
-            recorder.stop();
+            media.microState(false);
         this.setData({ isOpenMicro: !isOpenMicro })
     },
 
@@ -129,12 +110,33 @@ Page({
     onChangeLoudSpeaker() {
         const { isOpenLoudSpeaker } = this.data;
         if (!isOpenLoudSpeaker == true)
-            InnerAudioContext.volume = 1;
+            media.speakerState(true);
         if (!isOpenLoudSpeaker == false)
-            InnerAudioContext.volume = 0;
+            media.speakerState(false);
         this.setData({ isOpenLoudSpeaker: !isOpenLoudSpeaker })
     }
 })
 
 
 
+// 播放器
+InnerAudioContext.autoplay = true;
+InnerAudioContext.onCanplay(() => {
+    console.log("audio can play");
+})
+InnerAudioContext.onPlay(() => {
+    console.log("audio start");
+})
+InnerAudioContext.onStop(() => {
+    console.log("audio stop");
+})
+InnerAudioContext.onEnded(() => {
+    console.log("audio end");
+})
+InnerAudioContext.onError(() => {
+    console.log("audio err");
+})
+wx.onAudioInterruptionBegin(() => {
+    console.log("AudioInterruptionBegin");
+})
+// 播放器end

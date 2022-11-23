@@ -23,7 +23,7 @@ export class UDPSocket {
             port: this.port,
             message: message
         })
-        console.log(message, this.address, this.port, "send23333");
+        // console.log(message, this.address, this.port, "send23333");
     }
 
     connect() {

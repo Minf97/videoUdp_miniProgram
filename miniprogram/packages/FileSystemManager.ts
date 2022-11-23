@@ -3,7 +3,6 @@ export class FileSystemManager {
 
     constructor() {
         this.fs = wx.getFileSystemManager();
-        
     }
 
     readFile(filePath: string) {
@@ -22,15 +21,10 @@ export class FileSystemManager {
 
     writeFile(data: ArrayBufferLike, filePath: string) {
         return new Promise((reslove, reject) => {
-            console.log("开始");
-            let startTime = Date.now();
             this.fs.writeFile({
                 data,
                 filePath,
                 success: (res: any) => {
-                    let endTime = Date.now();
-                    console.log("结束，本次写入文件需要ms:", endTime - startTime);
-                    startTime = endTime;
                     reslove(res)
                 },
                 fail: (err: any) => {
