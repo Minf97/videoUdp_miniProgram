@@ -10,6 +10,7 @@ const HEADER_SENDMESSAGE = {
     session_id: wx.getStorageSync("session_id"),
     session_status: 1,
 }
+
 const InnerAudioContext = wx.createInnerAudioContext({
     useWebAudioImplement: true
 });
@@ -70,11 +71,11 @@ Page({
         media.microState(true);
         media.subscribeAudio(HEADER_SENDMESSAGE);
         media.onMessageUDPAudio(res => {
-            // console.log(res);
-            InnerAudioContext.src = res;
+            console.log(res, InnerAudioContext.src);
             
+            InnerAudioContext.src = res;
         })
-        InnerAudioContext.play();
+        
     },
 
     // 断开连接
@@ -87,7 +88,6 @@ Page({
             wx.hideLoading();
             wx.navigateBack();
         }, 200);
-
     },
 
     // 监听语音/视频切换事件
@@ -99,20 +99,24 @@ Page({
     // 监听麦克风开启/关闭事件
     onChangeMicro() {
         const { isOpenMicro } = this.data;
-        if (!isOpenMicro == true)
+        if (!isOpenMicro == true) {
             media.microState(true);
-        if (!isOpenMicro == false)
+        }
+        if (!isOpenMicro == false) {
             media.microState(false);
+        }
         this.setData({ isOpenMicro: !isOpenMicro })
     },
 
     // 监听扬声器开启/关闭事件
     onChangeLoudSpeaker() {
         const { isOpenLoudSpeaker } = this.data;
-        if (!isOpenLoudSpeaker == true)
+        if (!isOpenLoudSpeaker == true) {
             media.speakerState(true);
-        if (!isOpenLoudSpeaker == false)
+        }
+        if (!isOpenLoudSpeaker == false) {
             media.speakerState(false);
+        }
         this.setData({ isOpenLoudSpeaker: !isOpenLoudSpeaker })
     }
 })
@@ -123,6 +127,14 @@ Page({
 InnerAudioContext.autoplay = true;
 InnerAudioContext.onCanplay(() => {
     console.log("audio can play");
+})
+InnerAudioContext.onWaiting(() => {
+    console.log("audio waiting");
+    
+})
+InnerAudioContext.onTimeUpdate(() => {
+    console.log("audio timeupdate");
+    
 })
 InnerAudioContext.onPlay(() => {
     console.log("audio start");

@@ -18,6 +18,7 @@ recorder.onPause(() => {
 })
 recorder.onStop((res) => {
     console.log('recorder stop', res)
-    if (res.duration >= 5000)
+    if (res.duration >= 600000) {
         recorder.start(options);   //重新开始录音
+    }
 })

@@ -1,10 +1,12 @@
 import { ab2ToArr, arrayToAb2, strToAscii } from "../utils/util";
-import { decryptVideo, decryptAudio } from "../utils/decrypt"
+import { decryptVideo, decryptAudio } from "../utils/decrypt";
+import { hexMD5 } from "./md5"
 import { pcm_wav } from "./pcm_to_wav";
 import { UDPSocket } from "./Udp";
 import { WebSocket } from "./WebSocket";
 import {
     ADDRESS_UDPSOCKET,
+    ADDRESS_USER,
     ADDRESS_WEBSOCKET,
     CONNECTION_AUDIOCHANNEL_TIMEOUT,
     CONNECTION_TIMEOUT,
@@ -13,7 +15,7 @@ import {
     PORT_VIDEO
 } from "../constants/server";
 import { options, recorder } from "./RecorderManager";
-import { InnerAudioContext } from "./InnerAudioContext";
+// import { InnerAudioContext } from "./InnerAudioContext";
 import { FileSystemManager } from "./FileSystemManager";
 
 interface subscribeHeader {
@@ -49,6 +51,7 @@ class Media {
         this.udpVideoSocket.bind();
     }
 
+
     /**
      * 1. ws订阅指定设备device_id
      */
@@ -58,17 +61,20 @@ class Media {
         this.wsSocket.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
     }
 
+
     /**
      * 2. ws组装要发送的信息并发送
      * @param msg 要发送的信息
      * @param cmd 命令
      */
     assembleDataSend(msg, cmd) {
-        let timestamp1 = Date.parse(new Date() as any);
-        let message = `cmd=publish&topic=control_${this.device_id}&device_id=${this.device_id}&device_key=${this.device_key}&message={"cmd":${cmd},"pv":0,"sn":"${timestamp1}","msg":${msg}}`;
+        const timestamp1 = Date.parse(new Date() as any);
+        const message = `cmd=publish&topic=control_${this.device_id}&device_id=${this.device_id}&device_key=${this.device_key}&message={"cmd":${cmd},"pv":0,"sn":"${timestamp1}","msg":${msg}}`;
+
         console.log("通过 socket 发送的 message.......", message);
         this.wsSocket.ws_send(message)
     }
+
 
     /**
      * 3. udp订阅视频流
@@ -93,6 +99,7 @@ class Media {
             this.udpVideoSocket.send(message)
         }, CONNECTION_VIDEOCHANNEL_TIMEOUT)
     }
+
 
     /**
      * 3. udp订阅音频流 http://doc.doit/project-23/doc-266/
@@ -130,16 +137,17 @@ class Media {
                 }
             }, CONNECTION_AUDIOCHANNEL_TIMEOUT)
         })
-        this.onMessageUDPAudio(res => {
-            const dateNow = Date.now();
-            decryptAudio(res).then(res => {
-                const view = pcm_wav(res, '8000', '16', '1');
-                return this.fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-            }).then(res => {
-                InnerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
-            }).catch((err) => {})
-        })
+        // this.onMessageUDPAudio(res => {
+        //     const dateNow = Date.now();
+        //     decryptAudio(res).then(res => {
+        //         const view = pcm_wav(res, '8000', '16', '1');
+        //         return this.fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
+        //     }).then(res => {
+        //         InnerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
+        //     }).catch((err) => { })
+        // })
     }
+
 
     /**
      * 4. udp关闭音频流 http://doc.doit/project-23/doc-271/
@@ -164,6 +172,7 @@ class Media {
         }, CONNECTION_AUDIOCHANNEL_TIMEOUT)
     }
 
+
     /**
      * 5. ws关闭媒体流连接（销毁该session_id）
      */
@@ -187,9 +196,10 @@ class Media {
             this.udpAudioSocket.send(message)
         }, CONNECTION_TIMEOUT)
         recorder.stop();
-        InnerAudioContext.stop();
+        // InnerAudioContext.stop();
         console.log("closeMediaConnection, 结束音视频通话！");
     }
+
 
     /**
      * 开启/关闭麦克风
@@ -214,20 +224,31 @@ class Media {
      * @param command 命令，true开启；false关闭
      */
     speakerState(command: boolean) {
-        if (command == true)
-            InnerAudioContext.volume = 1;
-        console.log("开启扬声器");
-        if (command = false)
-            InnerAudioContext.volume = 0;
-        console.log("关闭扬声器");
+        // if (command == true) {
+        //     InnerAudioContext.volume = 1;
+        //     console.log("开启扬声器");
+        // }
+
+        // if (command = false) {
+        //     InnerAudioContext.volume = 0;
+        //     console.log("关闭扬声器");
+        // }
     }
 
+    /**
+     * websocket的监听回调函数
+     * @param fn 外部使用箭头函数
+     */
     onMessageWS(fn: Function) {
         this.wsSocket.ws.onMessage(res => {
             fn(res)
         })
     }
 
+    /**
+     * udpVideo的监听回调函数
+     * @param fn 外部使用箭头函数
+     */
     onMessageUDPVideo(fn: Function) {
         this.udpVideoSocket.onMessage(res => {
             decryptVideo(res).then(video => {
@@ -236,6 +257,10 @@ class Media {
         })
     }
 
+    /**
+     * udpAudio的监听回调函数
+     * @param fn 外部使用箭头函数
+     */
     onMessageUDPAudio(fn: Function) {
         this.udpVideoSocket.onMessage(res => {
             const dateNow = Date.now();
@@ -244,7 +269,75 @@ class Media {
                 return this.fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
             }).then(res => {
                 fn(`${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-            }).catch((err) => {})
+            }).catch((err) => { })
+        })
+    }
+
+    /**
+     * 注册账号 http://doc.doit/project-12/doc-274/
+     * @param username 用户名
+     * @param password 密码
+     */
+    register(username: string, password: string) {
+        const appid = '1';
+        const timestamp = Date.parse(new Date() as any);
+        const app_secret = '1';
+        const sign = hexMD5(appid + timestamp + app_secret);
+
+        return new Promise((reslove, reject) => {
+            wx.request({
+                method: 'POST',
+                url: `${ADDRESS_USER}/api/access_application/user/register`, //仅为示例，并非真实的接口地址
+                data: {
+                    username,
+                    password
+                },
+                header: {
+                    'appid': appid,
+                    'timestamp': timestamp,
+                    'sign': sign,
+                },
+                success: res => {
+                    reslove(res)
+                },
+                fail: err => {
+                    reject(err)
+                }
+            })
+        })
+    }
+
+    /**
+     * 登录账号 http://doc.doit/project-12/doc-275/
+     * @param username 用户名
+     * @param password 密码
+     */
+    login(username: string, password: string) {
+        const appid = '1';
+        const timestamp = Date.parse(new Date() as any);
+        const app_secret = '1';
+        const sign = hexMD5(appid + timestamp + app_secret);
+
+        return new Promise((reslove, reject) => {
+            wx.request({
+                method: 'POST',
+                url: `${ADDRESS_USER}/api/access_application/user/login`, //仅为示例，并非真实的接口地址
+                data: {
+                    username,
+                    password
+                },
+                header: {
+                    'appid': appid,
+                    'timestamp': timestamp,
+                    'sign': sign,
+                },
+                success: res => {
+                    reslove(res)
+                },
+                fail: err => {
+                    reject(err)
+                }
+            })
         })
     }
 }

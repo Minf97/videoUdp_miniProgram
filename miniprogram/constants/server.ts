@@ -19,3 +19,8 @@ export const CONNECTION_TIMEOUT = 2000;
 export const CONNECTION_VIDEOCHANNEL_TIMEOUT = 2000;
 // udp音频通道用户连接超时时间：单位ms（心跳包）
 export const CONNECTION_AUDIOCHANNEL_TIMEOUT = 1000;
+
+
+
+// 注册/登录账号的服务器地址
+export const ADDRESS_USER = 'http://test.doiting.com';

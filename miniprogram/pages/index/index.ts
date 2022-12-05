@@ -2,7 +2,7 @@ import { media } from "../../packages/Control";
 import { decryptResponse } from "../../utils/decrypt";
 
 
-const DEVICE_ID = "66901825c8478c002332";
+const DEVICE_ID = "66901624c8478c000018";
 const DEVICE_KEY = "1519053727"
 
 Page({
@@ -30,18 +30,23 @@ Page({
     },
 
     onLoad() {
-        
+
         media.wsSocket.connectSocket().then(res => {
             console.log(res);
+
+            media.wsSocket.onOpen(() => {
+                console.log(2333);
+                media.subcribe(DEVICE_ID, DEVICE_KEY);
+            })
+
             media.onMessageWS(res => {
                 console.log(res);
                 decryptResponse(res.data);
             })
+            
         })
 
-        media.wsSocket.onOpen(() => {
-            media.subcribe(DEVICE_ID, DEVICE_KEY);
-        })
+
     },
 
     callToDevice() {

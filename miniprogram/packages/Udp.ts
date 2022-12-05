@@ -49,7 +49,7 @@ export class UDPSocket {
     onMessage(fn: Function) {
         this.udp.onMessage(res => {
             const { message } = res;
-            return fn(message);
+            fn(message);
         })
     }
 }

@@ -13,8 +13,8 @@ export class WebSocket {
         return new Promise((reslove, reject) => {
             this.ws = wx.connectSocket({
                 url: this.url,
-                success: () => {
-                    reslove("连接成功")
+                success: res => {
+                    reslove(res)
                 },
                 fail: err => {
                     reject(err)
@@ -24,8 +24,6 @@ export class WebSocket {
     }
 
     ws_send(data) {
-        console.log(typeof (data));
-
         return new Promise((reslove, reject) => {
             this.ws.send({
                 data: data,
@@ -40,31 +38,20 @@ export class WebSocket {
     }
 
     /**
-     * 订阅指定设备device_id
-     */
-    subcribe(device_id: string, device_key: string) {
-        this.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
-    }
-
-    assembleDataSend(msg, cmd) {
-        // let { device_key, device_id } = getApp().globalData.openDeviceInfo;
-        let device_key = '1519053727';
-        let device_id = '66901624c8478c000018';
-        let timestamp1 = Date.parse(new Date() as any);
-        // 订阅
-        this.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
-        let message = `cmd=publish&topic=control_${device_id}&device_id=${device_id}&device_key=${device_key}&message={"cmd":${cmd},"pv":0,"sn":"${timestamp1}","msg":${msg}}`;
-        console.log("通过 socket 发送的 message.......", message);
-        this.ws_send(message)
-    }
-
-    /**
      * websocket连接打开
      * @param fn 要执行的函数
      */
     onOpen(fn) {
         this.ws.onOpen(() => {
-            return fn();
+            fn();
+        })
+        this.ws.onError(err => {
+            console.log(err);
+            
+            wx.showToast({
+                title: "websocket连接失败",
+                icon: 'none'
+            })
         })
     }
 }

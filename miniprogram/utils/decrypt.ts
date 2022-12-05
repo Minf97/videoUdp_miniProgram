@@ -1,6 +1,9 @@
 
 
 import { ab2ToArr, hexToStr } from "./util";
+
+const STACKAUDIO_LENGTH = 8960;
+
 interface stack {
     clearStack: Function
 }
@@ -31,13 +34,13 @@ class stackAudioImpl implements stack {
     public audioContent = [];
 
     clearStack() {
-        this.audioContent.splice(0, 5120);
+        
     }
     setContent(audioContent: any[]) {
         this.audioContent = this.audioContent.concat(audioContent as any)
     }
     getContent(): number[] {
-        return this.audioContent
+        return this.audioContent.splice(0, STACKAUDIO_LENGTH)
     }
 }
 
@@ -89,10 +92,6 @@ export function decryptVideo(message: ArrayBufferLike) {
 
 // http://doc.doit/project-23/doc-264/
 let stackAudio = new stackAudioImpl();
-/**
- * 解密音频流通道信息
- * @param message udp服务器返回的音频数据包
- */
 export function decryptAudio(message: ArrayBufferLike) {
     return new Promise((reslove, reject) => {
         const len = message.byteLength,
@@ -104,13 +103,12 @@ export function decryptAudio(message: ArrayBufferLike) {
 
         stackAudio.setContent(audioContent);
 
-        if (stackAudio.audioContent.length >= 5120) {
+        if (stackAudio.audioContent.length >= STACKAUDIO_LENGTH) {
             let audio = arrayToAb2(stackAudio.getContent());
-            stackAudio.clearStack();
             reslove(audio)
         }
         else {
-            reject("数量小于 20000 :" + stackAudio.audioContent.length)
+            reject(`数量小于 ${STACKAUDIO_LENGTH} :` + stackAudio.audioContent.length)
         }
     })
 
