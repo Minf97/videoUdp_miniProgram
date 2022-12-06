@@ -1,5 +1,5 @@
 import { ab2ToArr, arrayToAb2, strToAscii } from "../utils/util";
-import { decryptVideo, decryptAudio } from "../utils/decrypt";
+import { decryptVideo, decryptAudio, decryptResponse } from "../utils/decrypt";
 import { hexMD5 } from "./md5"
 import { pcm_wav } from "./pcm_to_wav";
 import { UDPSocket } from "./Udp";
@@ -17,6 +17,7 @@ import {
 import { options, recorder } from "./RecorderManager";
 // import { InnerAudioContext } from "./InnerAudioContext";
 import { FileSystemManager } from "./FileSystemManager";
+import { TOAST_NETWORKBAD } from "../constants/config";
 
 interface subscribeHeader {
     version: string | number
@@ -56,11 +57,25 @@ class Media {
      * 1. ws订阅指定设备device_id
      */
     subcribe(device_id: string, device_key: string) {
-        this.device_id = device_id;
-        this.device_key = device_key;
-        this.wsSocket.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
+        this.wsSocket.connectSocket().then(() => {
+            this.wsSocket.onOpen(() => {
+                this.device_id = device_id;
+                this.device_key = device_key;
+                this.wsSocket.ws_send(`cmd=subscribe&topic=control_${device_id}&from=device&device_id=${device_id}&device_key=${device_key}`)
+            })
+            media.onMessageWS(res => {
+                console.log(res);
+            })
+        })
     }
 
+    /**
+     * 监听订阅
+     * @param fn 
+     */
+    onSubcribe(fn:Function) {
+
+    }
 
     /**
      * 2. ws组装要发送的信息并发送
@@ -82,7 +97,6 @@ class Media {
      */
     subscribeVideo(data: subscribeHeader) {
         const { version, token, session_id, session_status } = data
-
         // 将数据拼凑出来一个完整包
         let message: any = [
             ...new Array(1).fill(version),
@@ -90,12 +104,10 @@ class Media {
             ...strToAscii(session_id).split(","),
             ...new Array(1).fill(session_status),
         ];
-
         // 将包转为ArrayBuffer，便于发包
         message = arrayToAb2(message);
-
         // 发包
-        this.udpAudioTimer = setInterval(() => {
+        this.udpVideoTimer = setInterval(() => {
             this.udpVideoSocket.send(message)
         }, CONNECTION_VIDEOCHANNEL_TIMEOUT)
     }
@@ -116,9 +128,8 @@ class Media {
                 ...strToAscii(session_id).split(","),
                 ...new Array(1).fill(session_status),
             ];
-
             this.stackAudio = this.stackAudio.concat(ab2ToArr(frameBuffer));
-            this.udpVideoTimer = setInterval(() => {
+            this.udpAudioTimer = setInterval(() => {
                 let audioDataArr: any = [];
                 if (this.stackAudio.length > 1280)
                     audioDataArr = this.stackAudio.splice(0, 1280);
@@ -128,7 +139,7 @@ class Media {
                     audioDataArr = this.stackAudio.splice(0, 640);
                 else if (this.stackAudio.length > 320)
                     audioDataArr = this.stackAudio.splice(0, 320);
-                else return
+                else return;
 
                 const messageArr = [...message, ...audioDataArr];
                 // 发包
@@ -137,40 +148,8 @@ class Media {
                 }
             }, CONNECTION_AUDIOCHANNEL_TIMEOUT)
         })
-        // this.onMessageUDPAudio(res => {
-        //     const dateNow = Date.now();
-        //     decryptAudio(res).then(res => {
-        //         const view = pcm_wav(res, '8000', '16', '1');
-        //         return this.fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-        //     }).then(res => {
-        //         InnerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
-        //     }).catch((err) => { })
-        // })
     }
 
-
-    /**
-     * 4. udp关闭音频流 http://doc.doit/project-23/doc-271/
-     */
-    closeAudio(data: subscribeHeader) {
-        const { version, token, session_id, session_status } = data
-
-        // 将数据拼凑出来一个完整包
-        let message: any = [
-            ...new Array(1).fill(version),
-            ...strToAscii(token).split(","),
-            ...strToAscii(session_id).split(","),
-            ...new Array(1).fill(session_status),
-        ];
-
-        // 将包转为ArrayBuffer，便于发包
-        message = arrayToAb2(message);
-
-        // 发空包
-        this.udpVideoTimer = setInterval(() => {
-            this.udpAudioSocket.send(message)
-        }, CONNECTION_AUDIOCHANNEL_TIMEOUT)
-    }
 
 
     /**
@@ -223,16 +202,16 @@ class Media {
      * 开启/关闭扬声器
      * @param command 命令，true开启；false关闭
      */
-    speakerState(command: boolean) {
-        // if (command == true) {
-        //     InnerAudioContext.volume = 1;
-        //     console.log("开启扬声器");
-        // }
+    speakerState(InnerAudioContext, command: boolean) {
+        if (command == true) {
+            InnerAudioContext.volume = 1;
+            console.log("开启扬声器");
+        }
 
-        // if (command = false) {
-        //     InnerAudioContext.volume = 0;
-        //     console.log("关闭扬声器");
-        // }
+        if (command = false) {
+            InnerAudioContext.volume = 0;
+            console.log("关闭扬声器");
+        }
     }
 
     /**
@@ -241,7 +220,8 @@ class Media {
      */
     onMessageWS(fn: Function) {
         this.wsSocket.ws.onMessage(res => {
-            fn(res)
+            const response = decryptResponse(res.data);
+            fn(response);
         })
     }
 
@@ -250,10 +230,17 @@ class Media {
      * @param fn 外部使用箭头函数
      */
     onMessageUDPVideo(fn: Function) {
+        let pre = Date.now();
         this.udpVideoSocket.onMessage(res => {
+            let now = Date.now();
             decryptVideo(res).then(video => {
+                if (now - pre >= TOAST_NETWORKBAD) {
+                    networkBad();
+                }
+                pre = now;
                 fn(video);
             });
+
         })
     }
 
@@ -262,14 +249,14 @@ class Media {
      * @param fn 外部使用箭头函数
      */
     onMessageUDPAudio(fn: Function) {
-        this.udpVideoSocket.onMessage(res => {
+        this.udpAudioSocket.onMessage(res => {
             const dateNow = Date.now();
             decryptAudio(res).then(res => {
                 const view = pcm_wav(res, '8000', '16', '1');
                 return this.fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-            }).then(res => {
+            }).then(() => {
                 fn(`${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-            }).catch((err) => { })
+            }).catch(() => { })
         })
     }
 
@@ -340,6 +327,17 @@ class Media {
             })
         })
     }
+}
+
+/**
+ * 网络差的情况
+ */
+function networkBad() {
+    wx.showToast({
+        title: "网络不佳",
+        icon: "none",
+        duration: 1500
+    })
 }
 
 

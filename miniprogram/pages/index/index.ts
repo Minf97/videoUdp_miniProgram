@@ -1,6 +1,4 @@
 import { media } from "../../packages/Control";
-import { decryptResponse } from "../../utils/decrypt";
-
 
 const DEVICE_ID = "66901624c8478c000018";
 const DEVICE_KEY = "1519053727"
@@ -31,21 +29,34 @@ Page({
 
     onLoad() {
 
-        media.wsSocket.connectSocket().then(res => {
-            console.log(res);
+        // media.wsSocket.connectSocket().then(res => {
+        //     console.log(res);
 
-            media.wsSocket.onOpen(() => {
-                console.log(2333);
-                media.subcribe(DEVICE_ID, DEVICE_KEY);
-            })
+        //     media.wsSocket.onOpen(() => {
+        //         console.log(2333);
+        //         media.subcribe(DEVICE_ID, DEVICE_KEY);
+        //     })
 
-            media.onMessageWS(res => {
-                console.log(res);
-                decryptResponse(res.data);
-            })
+        //     media.onMessageWS(res => {
+        //         console.log(res);
+        //         if(!res) return;
+        //         wx.setStorageSync("session_id", res.session_id);
+        //         // 如果设备发起呼叫，则跳转
+        //         if (res.device_request_call == 1) {
+        //             wx.navigateTo({
+        //                 url: "../callByDevice/callByDevice",
+        //             })
+        //         }
+        //         // 设备应答
+        //         if (res.user_call == 1) {
+        //             wx.navigateTo({
+        //                 url: "../call/call?isVideo=true",
+        //             })
+        //         }
+        //     })
             
-        })
-
+        // })
+        media.subcribe(DEVICE_ID, DEVICE_KEY)
 
     },
 

@@ -34,7 +34,7 @@ class stackAudioImpl implements stack {
     public audioContent = [];
 
     clearStack() {
-        
+
     }
     setContent(audioContent: any[]) {
         this.audioContent = this.audioContent.concat(audioContent as any)
@@ -120,39 +120,22 @@ export function decryptAudio(message: ArrayBufferLike) {
  * @param deviceResponse 设备的应答信息
  */
 export function decryptResponse(deviceResponse) {
-
-    let msg = deviceResponse as string;
-
-    const dataMsg = msg.split("message=")[1];
-    if (dataMsg != undefined) {
-        const message = JSON.parse(dataMsg);
-        console.log(message, "解析完成");
-        const cmd = message.cmd;
-        if (message.msg != undefined && message.msg.data != undefined) {
-            const dpid = message.msg.data;
-            // 可能收到的信息包括 101,107,110,111,112,114,115,116
-            const device_request_call = dpid["101"];
-            const device_request_call_reason = dpid["107"];
-            const session_id = dpid["110"];
-            const user_call = dpid["111"];
-            const call_type = dpid["112"];
-            const device_close_reason = dpid["114"];
-            const video_resolution = dpid["115"];
-            const video_fps = dpid["116"];
-
-            wx.setStorageSync("session_id", session_id);
-            // 如果设备发起呼叫，则跳转
-            if (device_request_call == 1) {
-                wx.navigateTo({
-                    url: "../callByDevice/callByDevice",
-                })
-            }
-            // 设备应答
-            if (user_call == 1) {
-                wx.navigateTo({
-                    url: "../call/call?isVideo=true",
-                })
-            }
+    if (deviceResponse.indexOf("message=") == -1) return deviceResponse;
+    const dataMsg = deviceResponse.split("message=")[1];
+    const message = JSON.parse(dataMsg);
+    const cmd = message.cmd;
+    if (message.msg != undefined && message.msg.data != undefined) {
+        const dpid = message.msg.data;
+        // 可能收到的信息包括 101,107,110,111,112,114,115,116
+        return {
+            device_request_call: dpid["101"],
+            device_request_call_reason: dpid["107"],
+            session_id: dpid["110"],
+            user_call: dpid["111"],
+            call_type: dpid["112"],
+            device_close_reason: dpid["114"],
+            video_resolution: dpid["115"],
+            video_fps: dpid["116"],
         }
     }
 }

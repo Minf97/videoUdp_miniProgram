@@ -26,5 +26,20 @@ Page({
         wx.navigateTo({
             url: "./../call/call?isVideo=true"
         })
+    },
+    audioCall() {
+        let msg = {
+            attr: [109, 110, 112, 117],
+            data: {
+                109: 1,
+                110: wx.getStorageSync("session_id"),
+                112: 2,
+                117: 3 //内网通信+公网通信
+            }
+        }
+        media.assembleDataSend(JSON.stringify(msg), 3);
+        wx.navigateTo({
+            url: "./../call/call?isVideo=false"
+        })
     }
 })

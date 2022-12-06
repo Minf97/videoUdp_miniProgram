@@ -46,8 +46,7 @@ export class WebSocket {
             fn();
         })
         this.ws.onError(err => {
-            console.log(err);
-            
+            console.log(err, "websocket连接失败");
             wx.showToast({
                 title: "websocket连接失败",
                 icon: 'none'

@@ -92,6 +92,99 @@ miniprogram
 
 [&#10008;] 外放会录到对方的声音，导致回声。考虑用 `webAudioContext` 处理
 
-[&#10008;] 未对网络不好的情况做处理
+[&#10008;] 音频质量有待提高
+
+[&#10004;] 对网络不好的情况做处理  2022-12-06
 
 [&#10004;] 主动呼叫/被动呼叫设备开启音视频
+
+## 使用方法
+在页面 `import` 导入 packages 文件夹下的 `Control.ts`，小程序内所有页面公用这一个接口类。
+```js
+import { media } from "../../packages/Control"
+```
+
+在首页进行 websocket 连接，`订阅指定device_id`
+```js
+
+```
+
+## 接口范例
+### onMessageUDPVideo 监听视频流信息
+```ts
+import { media } from "Control"
+const HEADER_SENDMESSAGE = {
+    version: 1, // 版本号
+    token: wx.getStorageSync("token"), // token-----30字节的token
+    session_id: wx.getStorageSync("session_id"), //会话id
+    session_status: wx.getStorageSync("session_status"), //会话状态
+}
+
+media.subscribeVideo(HEADER_SENDMESSAGE)
+media.onMessageUDPVideo(res => {
+    // res是每一帧图片内容
+    const base64Img = wx.arrayBufferToBase64(res as ArrayBufferLike);
+    this.setData({
+        imageSrc: `data:image/png;base64,${base64Img}`
+    })
+})
+```
+
+### onMessageUDPAudio 监听音频流信息
+```ts
+import { media } from "Control"
+const HEADER_SENDMESSAGE = {
+    version: 1, // 版本号
+    token: wx.getStorageSync("token"), // token-----30字节的token
+    session_id: wx.getStorageSync("session_id"), //会话id
+    session_status: wx.getStorageSync("session_status"), //会话状态
+}
+
+media.subscribeAudio(HEADER_SENDMESSAGE);
+media.onMessageUDPAudio(res => {
+    // res是每一帧音频的资源地址
+    InnerAudioContext.src = res;
+})
+```
+
+### onMessageWS 监听websocket信息（服务器转发设备信息）
+http://doc.doit/project-5/doc-8/
+```ts
+media.onMessageWS(res => {
+    console.log(res);
+    if(!res) return;
+    wx.setStorageSync("session_id", res.session_id);
+    // 如果设备发起呼叫，则跳转
+    if (res.device_request_call == 1) {
+        wx.navigateTo({
+            url: "../callByDevice/callByDevice",
+        })
+    }
+    // 设备应答
+    if (res.user_call == 1) {
+        wx.navigateTo({
+            url: "../call/call?isVideo=true",
+        })
+    }
+})
+```
+
+
+```TS
+我封装一下的udp回调(fn:Function) {
+    udp回调(res => {
+        fn(res)
+    })
+}
+
+我封装的实际投入生产的接口(fn:Function) {
+    我封装一下的udp回调(res => {
+        对res进行处理...
+        fn(对res处理后的结果)
+    })
+}
+
+客户使用我封装的实际投入生产的接口(res => {
+    InnerAudioContext.src = res
+})
+```
