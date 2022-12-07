@@ -57,7 +57,9 @@ Page({
             
         // })
         media.subcribe(DEVICE_ID, DEVICE_KEY)
-
+        media.onMessageWS(res => {
+            console.log(res);
+        })
     },
 
     callToDevice() {

@@ -63,19 +63,9 @@ class Media {
                 this.device_key = device_key;
                 this.wsSocket.ws_send(`cmd=subscribe&topic=control_${device_id}&from=device&device_id=${device_id}&device_key=${device_key}`)
             })
-            media.onMessageWS(res => {
-                console.log(res);
-            })
         })
     }
 
-    /**
-     * 监听订阅
-     * @param fn 
-     */
-    onSubcribe(fn:Function) {
-
-    }
 
     /**
      * 2. ws组装要发送的信息并发送
@@ -220,10 +210,26 @@ class Media {
      */
     onMessageWS(fn: Function) {
         this.wsSocket.ws.onMessage(res => {
+            console.log(res);
+            
             const response = decryptResponse(res.data);
-            fn(response);
+
+            // console.log(response);
+            
+            if(typeof(response) == "string") {
+                response.indexOf('res=1') == -1 ? fn("订阅设备失败") : fn("订阅设备成功");
+            }
+            
+            if(typeof(response) == "object") {
+                fn(response);
+            }
+
+            if(typeof(response) == "undefined") {
+                fn("解析错误！请打印res看看什么问题");
+            }
         })
     }
+
 
     /**
      * udpVideo的监听回调函数
@@ -240,7 +246,6 @@ class Media {
                 pre = now;
                 fn(video);
             });
-
         })
     }
 

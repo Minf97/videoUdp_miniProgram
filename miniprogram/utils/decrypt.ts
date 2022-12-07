@@ -114,12 +114,22 @@ export function decryptAudio(message: ArrayBufferLike) {
 
 }
 
+type decryptResponse = {
+    device_request_call: string | undefined
+    device_request_call_reason: string | undefined
+    session_id: string | undefined
+    user_call: string | undefined
+    call_type: string | undefined
+    device_close_reason: string | undefined
+    video_resolution: string | undefined
+    video_fps: string | undefined
+}
 
 /**
  * 解密设备端的应答信息 http://doc.doit/project-5/doc-8/
  * @param deviceResponse 设备的应答信息
  */
-export function decryptResponse(deviceResponse) {
+export function decryptResponse(deviceResponse):decryptResponse | string | undefined {
     if (deviceResponse.indexOf("message=") == -1) return deviceResponse;
     const dataMsg = deviceResponse.split("message=")[1];
     const message = JSON.parse(dataMsg);
@@ -138,6 +148,7 @@ export function decryptResponse(deviceResponse) {
             video_fps: dpid["116"],
         }
     }
+    return;
 }
 
 
