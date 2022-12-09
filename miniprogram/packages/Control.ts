@@ -15,7 +15,7 @@ import {
     PORT_VIDEO
 } from "../constants/server";
 import { options, recorder } from "./RecorderManager";
-// import { InnerAudioContext } from "./InnerAudioContext";
+import { InnerAudioContext } from "./InnerAudioContext";
 import { FileSystemManager } from "./FileSystemManager";
 import { TOAST_NETWORKBAD } from "../constants/config";
 
@@ -31,7 +31,6 @@ type MediaParam = {
     UDPAudio: WechatMiniprogram.UDPSocketConnectOption
     UDPVideo: WechatMiniprogram.UDPSocketConnectOption
 }
-
 
 class Media {
     public udpVideoSocket: UDPSocket
@@ -61,7 +60,7 @@ class Media {
             this.wsSocket.onOpen(() => {
                 this.device_id = device_id;
                 this.device_key = device_key;
-                this.wsSocket.ws_send(`cmd=subscribe&topic=control_${device_id}&from=device&device_id=${device_id}&device_key=${device_key}`)
+                this.wsSocket.ws_send(`cmd=subscribe&topic=device_${device_id}&from=control&device_id=${device_id}&device_key=${device_key}`)
             })
         })
     }
@@ -76,10 +75,21 @@ class Media {
         const timestamp1 = Date.parse(new Date() as any);
         const message = `cmd=publish&topic=control_${this.device_id}&device_id=${this.device_id}&device_key=${this.device_key}&message={"cmd":${cmd},"pv":0,"sn":"${timestamp1}","msg":${msg}}`;
 
-        console.log("通过 socket 发送的 message.......", message);
+        console.log("通过 socket 发送的 message :", message);
         this.wsSocket.ws_send(message)
     }
 
+    callToDevice(session_id) {
+        const msg = {
+            attr: [110, 111, 112],
+            data: {
+                110: session_id,
+                111: 1,
+                112: 3,
+            }
+        }
+        this.assembleDataSend(JSON.stringify(msg), 3);
+    }
 
     /**
      * 3. udp订阅视频流
@@ -97,6 +107,7 @@ class Media {
         // 将包转为ArrayBuffer，便于发包
         message = arrayToAb2(message);
         // 发包
+        clearInterval(this.udpVideoTimer);
         this.udpVideoTimer = setInterval(() => {
             this.udpVideoSocket.send(message)
         }, CONNECTION_VIDEOCHANNEL_TIMEOUT)
@@ -108,6 +119,8 @@ class Media {
      * @param data 发送的数据
      */
     subscribeAudio(data: subscribeHeader) {
+        InnerAudioContext.loop = false;
+        clearInterval(this.udpAudioTimer);
         recorder.onFrameRecorded(res => {
             const { frameBuffer } = res;
             const { version, token, session_id, session_status } = data
@@ -138,9 +151,57 @@ class Media {
                 }
             }, CONNECTION_AUDIOCHANNEL_TIMEOUT)
         })
+        this.onMessageUDPAudio(res => {
+            const dateNow = Date.now();
+            const view = pcm_wav(res, '8000', '16', '1');
+            this.fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`).then(() => {
+                InnerAudioContext.src = `${wx.env.USER_DATA_PATH}/${dateNow}.wav`;
+            }).catch(() => { })
+        })
     }
 
+    /**
+     * 视频接听
+     */
+    videoAnswer() {
+        let msg = {
+            attr: [109, 110, 112, 117],
+            data: {
+                109: 1,
+                110: wx.getStorageSync("session_id"),
+                112: 3,
+                117: 3 //内网通信+
+            }
+        }
+        this.assembleDataSend(JSON.stringify(msg), 3);
+    }
 
+    /**
+     * 语音接听
+     */
+    audioAnswer() {
+        let msg = {
+            attr: [109, 110, 112, 117],
+            data: {
+                109: 1,
+                110: wx.getStorageSync("session_id"),
+                112: 2,
+                117: 3 //内网通信+公网通信
+            }
+        }
+        this.assembleDataSend(JSON.stringify(msg), 3);
+    }
+
+    noAnswer() {
+        let msg = {
+            attr: [109, 110],
+            data: {
+                109: 2,
+                110: wx.getStorageSync("session_id"),
+            }
+        }
+        this.assembleDataSend(JSON.stringify(msg), 3);
+    }
 
     /**
      * 5. ws关闭媒体流连接（销毁该session_id）
@@ -161,11 +222,17 @@ class Media {
             }
         }
         this.assembleDataSend(JSON.stringify(msg), 3);
+        // 发送心跳包保持连接，（视频也一直在发）
+        clearInterval(this.udpAudioTimer);
         this.udpAudioTimer = setInterval(() => {
             this.udpAudioSocket.send(message)
         }, CONNECTION_TIMEOUT)
+        // 移除监听
+        this.udpVideoSocket.offMessage();
+        this.udpAudioSocket.offMessage();
+        // 停止一些服务
         recorder.stop();
-        // InnerAudioContext.stop();
+        InnerAudioContext.stop();
         console.log("closeMediaConnection, 结束音视频通话！");
     }
 
@@ -176,33 +243,34 @@ class Media {
      */
     microState(command: boolean) {
         if (command == true) {
+            wx.showLoading({
+                title: "请稍等..."
+            });
             recorder.start(options);
+            wx.hideLoading();
             console.log("开启麦克风");
         }
-
-
         if (command == false) {
             recorder.stop();
             console.log("关闭麦克风");
         }
-
     }
 
     /**
      * 开启/关闭扬声器
      * @param command 命令，true开启；false关闭
      */
-    speakerState(InnerAudioContext, command: boolean) {
+    speakerState(command: boolean) {
         if (command == true) {
             InnerAudioContext.volume = 1;
             console.log("开启扬声器");
         }
-
-        if (command = false) {
+        if (command == false) {
             InnerAudioContext.volume = 0;
             console.log("关闭扬声器");
         }
     }
+
 
     /**
      * websocket的监听回调函数
@@ -211,21 +279,62 @@ class Media {
     onMessageWS(fn: Function) {
         this.wsSocket.ws.onMessage(res => {
             console.log(res);
-            
+
             const response = decryptResponse(res.data);
-
-            // console.log(response);
-            
-            if(typeof(response) == "string") {
-                response.indexOf('res=1') == -1 ? fn("订阅设备失败") : fn("订阅设备成功");
+            // 订阅时
+            if (typeof (response) == "string") {
+                response.indexOf('res=1') == -1 ? fn({ res: "订阅设备失败" }) : fn({ res: "订阅设备成功" });
             }
-            
-            if(typeof(response) == "object") {
-                fn(response);
-            }
+            // 正常消息
+            if (typeof (response) == "object") {
+                console.log(response);
+                // http://doc.doit/project-5/doc-8/
+                const {
+                    device_request_call,
+                    device_request_call_reason,
+                    session_id,
+                    user_call,
+                    call_type,
+                    device_close_reason,
+                    video_resolution,
+                    video_fps,
+                } = response
 
-            if(typeof(response) == "undefined") {
-                fn("解析错误！请打印res看看什么问题");
+                if (device_request_call == 1) {
+                    fn({
+                        res: "设备发起呼叫",
+                        session_id: session_id
+                    });
+                }
+                else if (user_call == 1) {
+                    fn({
+                        res: "设备应答呼叫",
+                        session_id: session_id
+                    });
+                }
+                else if (device_close_reason == 1) {
+                    fn({
+                        res: "接听关闭",
+                        session_id: session_id
+                    })
+                }
+                else if (device_close_reason == 2) {
+                    fn({
+                        res: "连接超时",
+                        session_id: session_id
+                    })
+                }
+                else {
+                    fn({
+                        res: "解析错误！请打印response看看什么问题"
+                    })
+                }
+            }
+            // 解析格式错误
+            if (typeof (response) == "undefined") {
+                fn({
+                    res: "解析错误！请打印res看看什么问题"
+                });
             }
         })
     }
@@ -244,7 +353,10 @@ class Media {
                     networkBad();
                 }
                 pre = now;
-                fn(video);
+                const base64Img = wx.arrayBufferToBase64(video as ArrayBufferLike);
+                fn(base64Img);
+            }).catch((err) => {
+                // console.log(err, "报错了捏video");
             });
         })
     }
@@ -255,12 +367,8 @@ class Media {
      */
     onMessageUDPAudio(fn: Function) {
         this.udpAudioSocket.onMessage(res => {
-            const dateNow = Date.now();
             decryptAudio(res).then(res => {
-                const view = pcm_wav(res, '8000', '16', '1');
-                return this.fs.writeFile(view, `${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
-            }).then(() => {
-                fn(`${wx.env.USER_DATA_PATH}/${dateNow}.wav`)
+                fn(res);
             }).catch(() => { })
         })
     }

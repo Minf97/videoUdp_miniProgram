@@ -1,8 +1,8 @@
 import { media } from "../../packages/Control";
+import { DEVICE_ID, DEVICE_KEY } from "../../constants/config"
+import { ADDRESS_BELLRING, PATH_BELLRING } from "../../constants/server";
 
-const DEVICE_ID = "66901624c8478c000018";
-const DEVICE_KEY = "1519053727"
-
+const fs = wx.getFileSystemManager();
 Page({
     data: {
         imageSrc: "../../assets/images/init.png",
@@ -28,37 +28,36 @@ Page({
     },
 
     onLoad() {
-
-        // media.wsSocket.connectSocket().then(res => {
-        //     console.log(res);
-
-        //     media.wsSocket.onOpen(() => {
-        //         console.log(2333);
-        //         media.subcribe(DEVICE_ID, DEVICE_KEY);
-        //     })
-
-        //     media.onMessageWS(res => {
-        //         console.log(res);
-        //         if(!res) return;
-        //         wx.setStorageSync("session_id", res.session_id);
-        //         // 如果设备发起呼叫，则跳转
-        //         if (res.device_request_call == 1) {
-        //             wx.navigateTo({
-        //                 url: "../callByDevice/callByDevice",
-        //             })
-        //         }
-        //         // 设备应答
-        //         if (res.user_call == 1) {
-        //             wx.navigateTo({
-        //                 url: "../call/call?isVideo=true",
-        //             })
-        //         }
-        //     })
-            
-        // })
+        this.downloadBellRing();
         media.subcribe(DEVICE_ID, DEVICE_KEY)
-        media.onMessageWS(res => {
-            console.log(res);
+        media.onMessageWS(response => {
+            const { res } = response
+            if (res == "设备发起呼叫") {
+                wx.setStorageSync("session_id", response.session_id)
+                wx.navigateTo({
+                    url: "../callByDevice/callByDevice",
+                })
+            }
+            if (res == "设备应答呼叫") {
+                wx.setStorageSync("session_id", response.session_id)
+                wx.navigateTo({
+                    url: "../call/call?isVideo=true",
+                })
+            }
+            if (res == "接听关闭") {
+                wx.showToast({
+                    title: "接听关闭",
+                    icon: "none",
+                    duration: 3000
+                });
+            }
+            if (res == "连接超时") {
+                wx.showToast({
+                    title: "连接超时",
+                    icon: "none",
+                    duration: 3000
+                });
+            }
         })
     },
 
@@ -70,20 +69,33 @@ Page({
         let session_id;
         if (wx.getStorageSync("session_id")) {
             session_id = wx.getStorageSync("session_id")
-        } else {
+        }
+        else {
+            // 随机生成session_id
             session_id = parseInt((Math.random() * 9000 + 1000) as unknown as string).toString();
             wx.setStorageSync("session_id", session_id)
         }
 
-        const msg = {
-            attr: [110, 111, 112],
-            data: {
-                110: session_id,
-                111: 1,
-                112: 3,
+        media.callToDevice(session_id);
+    },
+
+    downloadBellRing() {
+        wx.showLoading({
+            title: "请稍等..."
+        })
+        fs.getFileInfo({
+            filePath: PATH_BELLRING,
+            success: () => wx.hideLoading(),
+            fail: () => {
+                wx.downloadFile({
+                    url: ADDRESS_BELLRING,
+                    success: res => {
+                        wx.hideLoading();
+                        fs.saveFileSync(res.tempFilePath, PATH_BELLRING);
+                    }
+                })
             }
-        }
-        media.assembleDataSend(JSON.stringify(msg), 3);
+        })
     }
 })
 

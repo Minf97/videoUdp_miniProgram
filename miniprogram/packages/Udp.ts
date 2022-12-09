@@ -1,11 +1,11 @@
 
 
 // class UDPSocket extends demo {}
-
 export class UDPSocket {
     public udp: WechatMiniprogram.UDPSocket;
     public address: string;
-    public port: number
+    public port: number;
+    public pre = 0;
 
     constructor(option: WechatMiniprogram.UDPSocketConnectOption) {
         this.udp = wx.createUDPSocket();
@@ -23,7 +23,9 @@ export class UDPSocket {
             port: this.port,
             message: message
         })
-        console.log("send", this.address, this.port, "send23333");
+        const now= Date.now();
+        // console.log("send", this.address, this.port, "send23333", now - this.pre);
+        this.pre = now;
     }
 
     connect() {
@@ -48,10 +50,12 @@ export class UDPSocket {
 
     onMessage(fn: Function) {
         this.udp.onMessage(res => {
-            // console.log(this.port);
-            
             const { message } = res;
             fn(message);
         })
+    }
+
+    offMessage() {
+        this.udp.offMessage();
     }
 }

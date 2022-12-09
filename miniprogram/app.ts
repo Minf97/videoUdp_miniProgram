@@ -14,4 +14,7 @@ App<IAppOption>({
             },
         })
     },
+    helloWorld() {
+        console.log("helloworld");
+    }
 })

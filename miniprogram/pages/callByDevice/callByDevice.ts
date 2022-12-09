@@ -1,45 +1,38 @@
+import { PATH_BELLRING } from "../../constants/server";
 import { media } from "../../packages/Control"
-
+import { InnerAudioContext } from "../../packages/InnerAudioContext";
 
 Page({
     data: {
 
     },
-    timer: 0,
     onLoad() {
-
+        InnerAudioContext.loop = true;
+        InnerAudioContext.src = PATH_BELLRING;
     },
-    onShow() {
-
-    },
-    videoCall() {
-        let msg = {
-            attr: [109, 110, 112, 117],
-            data: {
-                109: 1,
-                110: wx.getStorageSync("session_id"),
-                112: 3,
-                117: 3 //内网通信+
-            }
-        }
-        media.assembleDataSend(JSON.stringify(msg), 3);
+    videoAnswer() {
+        media.videoAnswer();
         wx.navigateTo({
-            url: "./../call/call?isVideo=true"
+            url: "../call/call?isVideo=true"
         })
+        InnerAudioContext.stop()
     },
-    audioCall() {
-        let msg = {
-            attr: [109, 110, 112, 117],
-            data: {
-                109: 1,
-                110: wx.getStorageSync("session_id"),
-                112: 2,
-                117: 3 //内网通信+公网通信
-            }
-        }
-        media.assembleDataSend(JSON.stringify(msg), 3);
+    audioAnswer() {
+        media.audioAnswer();
         wx.navigateTo({
-            url: "./../call/call?isVideo=false"
+            url: "../call/call?isVideo=false"
         })
-    }
+        InnerAudioContext.stop()
+    },
+    noAnswer() {
+        media.noAnswer();
+        wx.showLoading({
+            title: "请稍等..."
+        })
+        setTimeout(() => {
+            wx.hideLoading()
+            wx.navigateBack();
+            InnerAudioContext.stop()
+        }, 300)
+    },
 })

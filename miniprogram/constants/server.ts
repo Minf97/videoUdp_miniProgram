@@ -24,3 +24,7 @@ export const CONNECTION_AUDIOCHANNEL_TIMEOUT = 1000;
 
 // 注册/登录账号的服务器地址
 export const ADDRESS_USER = 'http://test.doiting.com';
+// 铃声响起的资源地址
+export const ADDRESS_BELLRING = 'http://api-cn.doiting.com/static/sound/bellring.wav';
+// 铃声响起的本地地址
+export const PATH_BELLRING = `${wx.env.USER_DATA_PATH}/bell.wav`;

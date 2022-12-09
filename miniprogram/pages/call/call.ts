@@ -11,10 +11,6 @@ const HEADER_SENDMESSAGE = {
     session_status: 1,
 }
 
-const InnerAudioContext = wx.createInnerAudioContext({
-    useWebAudioImplement: true
-});
-
 Page({
     data: {
         // 是否是视频通话
@@ -58,24 +54,16 @@ Page({
     startVideoChannel() {
         media.subscribeVideo(HEADER_SENDMESSAGE)
         media.onMessageUDPVideo(res => {
-            const base64Img = wx.arrayBufferToBase64(res as ArrayBufferLike);
             this.setData({
-                imageSrc: `data:image/png;base64,${base64Img}`
+                imageSrc: `data:image/png;base64,${res}`
             })
         })
-
     },
 
     // 开启音频流通道
     startAudioChannel() {
         media.microState(true);
         media.subscribeAudio(HEADER_SENDMESSAGE);
-        media.onMessageUDPAudio(res => {
-            console.log(res, InnerAudioContext.src);
-            
-            InnerAudioContext.src = res;
-        })
-        
     },
 
     // 断开连接
@@ -112,43 +100,11 @@ Page({
     onChangeLoudSpeaker() {
         const { isOpenLoudSpeaker } = this.data;
         if (!isOpenLoudSpeaker == true) {
-            media.speakerState(true);
+            media.speakerState(true)
         }
         if (!isOpenLoudSpeaker == false) {
-            media.speakerState(false);
+            media.speakerState(false)
         }
         this.setData({ isOpenLoudSpeaker: !isOpenLoudSpeaker })
     }
 })
-
-
-
-// 播放器
-InnerAudioContext.autoplay = true;
-InnerAudioContext.onCanplay(() => {
-    console.log("audio can play");
-})
-InnerAudioContext.onWaiting(() => {
-    console.log("audio waiting");
-    
-})
-InnerAudioContext.onTimeUpdate(() => {
-    console.log("audio timeupdate");
-    
-})
-InnerAudioContext.onPlay(() => {
-    console.log("audio start");
-})
-InnerAudioContext.onStop(() => {
-    console.log("audio stop");
-})
-InnerAudioContext.onEnded(() => {
-    console.log("audio end");
-})
-InnerAudioContext.onError(() => {
-    console.log("audio err");
-})
-wx.onAudioInterruptionBegin(() => {
-    console.log("AudioInterruptionBegin");
-})
-// 播放器end

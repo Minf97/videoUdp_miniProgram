@@ -4,8 +4,7 @@
         "pages/call/call",
         "pages/callByDevice/callByDevice",
         "pages/bellLogs/bellLogs",
-        "pages/setting/setting",
-        "pages/demo/index"
+        "pages/setting/setting"
     ],
     "window": {
         "backgroundTextStyle": "light",

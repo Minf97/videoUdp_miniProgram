@@ -49,6 +49,7 @@ class stackAudioImpl implements stack {
 // http://doc.doit/project-23/doc-263/
 let stackVideo = new stackVideoImpl();
 export function decryptVideo(message: ArrayBufferLike) {
+    
     return new Promise((reslove, reject) => {
         const len = message.byteLength;
         let subPackage = {
@@ -61,11 +62,12 @@ export function decryptVideo(message: ArrayBufferLike) {
             chunk_last: handleAb2(message.slice(28, 29)),
             imageContent: ab2ToArr(message.slice(29, len))
         }
-        // console.log(stackVideo.frame_index, subPackage.frame_index, "frame_index");
+        // const now = Date.now();
+        // console.log(stackVideo.frame_index, subPackage.frame_index, "frame_index", now - pre);
         // console.log(stackVideo.imageContent, subPackage.imageContent, "imageContent");
-        // console.log(subPackage.chunk_index, "本次的chunk_index");
+        // console.log(subPackage.chunk_index, "本次的chunk_index", now - pre);
         // console.log("1.本次分包的解密信息：", subPackage);
-
+        // pre = now;
 
         // 如果帧序不等于当前帧，则丢弃当前帧，只要最新帧
         if (subPackage.frame_index !== stackVideo.frame_index) {
@@ -74,6 +76,7 @@ export function decryptVideo(message: ArrayBufferLike) {
         }
         // 进行分包排序
         stackVideo.setContent(subPackage.chunk_index, subPackage.imageContent);
+
         // 该帧接收完毕
         if (
             subPackage.chunk_last == 1 &&
@@ -87,7 +90,6 @@ export function decryptVideo(message: ArrayBufferLike) {
             reject("通话关闭")
         }
     })
-
 }
 
 // http://doc.doit/project-23/doc-264/
@@ -115,21 +117,21 @@ export function decryptAudio(message: ArrayBufferLike) {
 }
 
 type decryptResponse = {
-    device_request_call: string | undefined
-    device_request_call_reason: string | undefined
+    device_request_call: number | undefined
+    device_request_call_reason: number | undefined
     session_id: string | undefined
-    user_call: string | undefined
-    call_type: string | undefined
-    device_close_reason: string | undefined
-    video_resolution: string | undefined
-    video_fps: string | undefined
+    user_call: number | undefined
+    call_type: number | undefined
+    device_close_reason: number | undefined
+    video_resolution: number | undefined
+    video_fps: number | undefined
 }
 
 /**
  * 解密设备端的应答信息 http://doc.doit/project-5/doc-8/
  * @param deviceResponse 设备的应答信息
  */
-export function decryptResponse(deviceResponse):decryptResponse | string | undefined {
+export function decryptResponse(deviceResponse): decryptResponse | string | undefined {
     if (deviceResponse.indexOf("message=") == -1) return deviceResponse;
     const dataMsg = deviceResponse.split("message=")[1];
     const message = JSON.parse(dataMsg);
