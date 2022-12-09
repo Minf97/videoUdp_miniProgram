@@ -1,7 +1,7 @@
 
 
 // webSocket地址
-export const ADDRESS_WEBSOCKET = 'wss://wss-cn.doiting.com/control';
+export const ADDRESS_WEBSOCKET = 'wss://wss-cn.doiting.com/ws';
 // websocket用户连接超时时间：单位ms（心跳包）
 export const CONNECTION_WEBSOCKET_TIMEOUT = 6000;
 

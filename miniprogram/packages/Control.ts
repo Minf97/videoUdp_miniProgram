@@ -1,5 +1,5 @@
-import { ab2ToArr, arrayToAb2, strToAscii } from "../utils/util";
-import { decryptVideo, decryptAudio, decryptResponse } from "../utils/decrypt";
+import { ab2ToArr, arrayToAb2, strToAscii } from "./util";
+import { decryptVideo, decryptAudio, decryptResponse } from "./decrypt";
 import { hexMD5 } from "./md5"
 import { pcm_wav } from "./pcm_to_wav";
 import { UDPSocket } from "./Udp";

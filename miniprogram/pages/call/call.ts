@@ -1,5 +1,5 @@
 
-import { formatTime } from "../../utils/util";
+import { formatTime } from "../../packages/util";
 import { media } from "../../packages/Control"
 
 
